@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/go/ryohi_sub_cal/src/api/**)",
+      "Bash(.specify/scripts/setup-plan.sh:*)",
+      "Bash(mkdir:*)",
+      "Bash(go:*)",
+      "Bash(cat:*)",
+      "Bash(sed:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

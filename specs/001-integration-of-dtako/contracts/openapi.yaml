@@ -1,0 +1,415 @@
+openapi: 3.0.0
+info:
+  title: dtako_mod API
+  description: 本番環境からdtako_rows、dtako_events、dtako_ferryデータをインポートするAPI
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: ローカル開発サーバー
+
+paths:
+  /dtako/rows:
+    get:
+      summary: 運行データ一覧取得
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日（YYYY-MM-DD）
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 終了日（YYYY-MM-DD）
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DtakoRow'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/rows/import:
+    post:
+      summary: 運行データインポート
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportRequest'
+      responses:
+        '200':
+          description: インポート成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/rows/{id}:
+    get:
+      summary: 運行データ個別取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtakoRow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /dtako/events:
+    get:
+      summary: イベント一覧取得
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日（YYYY-MM-DD）
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 終了日（YYYY-MM-DD）
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [START, STOP, BREAK, ACCIDENT, MAINTENANCE, OTHER]
+          description: イベントタイプフィルター
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DtakoEvent'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/events/import:
+    post:
+      summary: イベントデータインポート
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ImportRequest'
+                - type: object
+                  properties:
+                    event_type:
+                      type: string
+                      enum: [START, STOP, BREAK, ACCIDENT, MAINTENANCE, OTHER]
+      responses:
+        '200':
+          description: インポート成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/events/{id}:
+    get:
+      summary: イベント個別取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtakoEvent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /dtako/ferry:
+    get:
+      summary: フェリー運航データ一覧取得
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日（YYYY-MM-DD）
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 終了日（YYYY-MM-DD）
+        - name: route
+          in: query
+          schema:
+            type: string
+            enum: [ROUTE_A, ROUTE_B, ROUTE_C]
+          description: 航路フィルター
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DtakoFerry'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/ferry/import:
+    post:
+      summary: フェリーデータインポート
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ImportRequest'
+                - type: object
+                  properties:
+                    route:
+                      type: string
+                      enum: [ROUTE_A, ROUTE_B, ROUTE_C]
+      responses:
+        '200':
+          description: インポート成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dtako/ferry/{id}:
+    get:
+      summary: フェリーデータ個別取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtakoFerry'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    DtakoRow:
+      type: object
+      required:
+        - id
+        - date
+        - vehicle_no
+        - driver_code
+        - route_code
+        - distance
+        - fuel_amount
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        vehicle_no:
+          type: string
+        driver_code:
+          type: string
+        route_code:
+          type: string
+        distance:
+          type: number
+          format: float
+        fuel_amount:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DtakoEvent:
+      type: object
+      required:
+        - id
+        - event_date
+        - event_type
+        - vehicle_no
+        - driver_code
+        - description
+      properties:
+        id:
+          type: string
+        event_date:
+          type: string
+          format: date-time
+        event_type:
+          type: string
+          enum: [START, STOP, BREAK, ACCIDENT, MAINTENANCE, OTHER]
+        vehicle_no:
+          type: string
+        driver_code:
+          type: string
+        description:
+          type: string
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DtakoFerry:
+      type: object
+      required:
+        - id
+        - date
+        - route
+        - vehicle_no
+        - driver_code
+        - departure_time
+        - arrival_time
+        - passengers
+        - vehicles
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        route:
+          type: string
+          enum: [ROUTE_A, ROUTE_B, ROUTE_C]
+        vehicle_no:
+          type: string
+        driver_code:
+          type: string
+        departure_time:
+          type: string
+          format: date-time
+        arrival_time:
+          type: string
+          format: date-time
+        passengers:
+          type: integer
+        vehicles:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ImportRequest:
+      type: object
+      properties:
+        from_date:
+          type: string
+          format: date
+          description: インポート開始日
+        to_date:
+          type: string
+          format: date
+          description: インポート終了日
+
+    ImportResult:
+      type: object
+      required:
+        - success
+        - imported_rows
+        - message
+        - imported_at
+      properties:
+        success:
+          type: boolean
+        imported_rows:
+          type: integer
+        message:
+          type: string
+        imported_at:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: 不正なリクエスト
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: リソースが見つかりません
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: サーバー内部エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
