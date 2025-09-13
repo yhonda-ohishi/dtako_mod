@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_events"
                 ],
                 "summary": "List Dtako Events",
                 "parameters": [
@@ -89,7 +89,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_events"
                 ],
                 "summary": "Import Dtako Events",
                 "parameters": [
@@ -135,7 +135,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_events"
                 ],
                 "summary": "Get Dtako Event by ID",
                 "parameters": [
@@ -173,7 +173,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ferry_rows"
+                    "dtako_ferry"
                 ],
                 "summary": "List ferry row records",
                 "parameters": [
@@ -231,7 +231,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ferry_rows"
+                    "dtako_ferry"
                 ],
                 "summary": "Import ferry row records from production",
                 "parameters": [
@@ -277,7 +277,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ferry_rows"
+                    "dtako_ferry"
                 ],
                 "summary": "Get ferry row record by ID",
                 "parameters": [
@@ -321,7 +321,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_rows"
                 ],
                 "summary": "List Dtako Rows",
                 "parameters": [
@@ -373,7 +373,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_rows"
                 ],
                 "summary": "Import Dtako Rows",
                 "parameters": [
@@ -419,7 +419,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako"
+                    "dtako_rows"
                 ],
                 "summary": "Get Dtako Row by ID",
                 "parameters": [

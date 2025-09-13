@@ -25,7 +25,7 @@ func NewDtakoEventsHandler() *DtakoEventsHandler {
 // List lists dtako events
 // @Summary      List Dtako Events
 // @Description  Get event data with location information and optional filtering
-// @Tags         dtako
+// @Tags         dtako_events
 // @Accept       json
 // @Produce      json
 // @Param        from     query     string  false  "Start date (YYYY-MM-DD)"
@@ -56,7 +56,7 @@ func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 // Import imports dtako_events from production
 // @Summary      Import Dtako Events
 // @Description  Import event data from production database
-// @Tags         dtako
+// @Tags         dtako_events
 // @Accept       json
 // @Produce      json
 // @Param        request body models.ImportRequest true "Import request"
@@ -92,7 +92,7 @@ func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 // GetByID returns a specific dtako_event by ID
 // @Summary      Get Dtako Event by ID
 // @Description  Get specific event data by ID
-// @Tags         dtako
+// @Tags         dtako_events
 // @Accept       json
 // @Produce      json
 // @Param        id      path      string  true  "Event ID"

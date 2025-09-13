@@ -24,7 +24,7 @@ func NewDtakoFerryRowsHandler() *DtakoFerryRowsHandler {
 // List handles GET /ferry_rows
 // @Summary      List ferry row records
 // @Description  Retrieve ferry row records with optional date range and ferry company filter
-// @Tags         ferry_rows
+// @Tags         dtako_ferry
 // @Accept       json
 // @Produce      json
 // @Param        from          query     string  false  "Start date (YYYY-MM-DD)"
@@ -52,7 +52,7 @@ func (h *DtakoFerryRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 // GetByID handles GET /ferry_rows/{id}
 // @Summary      Get ferry row record by ID
 // @Description  Retrieve a specific ferry row record by its ID
-// @Tags         ferry_rows
+// @Tags         dtako_ferry
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Ferry row record ID"
@@ -84,7 +84,7 @@ func (h *DtakoFerryRowsHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 // Import handles POST /ferry_rows/import
 // @Summary      Import ferry row records from production
 // @Description  Import ferry row records from production database for a date range
-// @Tags         ferry_rows
+// @Tags         dtako_ferry
 // @Accept       json
 // @Produce      json
 // @Param        request  body      models.ImportRequest  true  "Import request with date range and optional ferry company filter"

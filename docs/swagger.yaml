@@ -278,7 +278,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: List Dtako Events
       tags:
-      - dtako
+      - dtako_events
   /events/{id}:
     get:
       consumes:
@@ -303,7 +303,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get Dtako Event by ID
       tags:
-      - dtako
+      - dtako_events
   /events/import:
     post:
       consumes:
@@ -333,7 +333,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Import Dtako Events
       tags:
-      - dtako
+      - dtako_events
   /ferry_rows:
     get:
       consumes:
@@ -372,7 +372,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: List ferry row records
       tags:
-      - ferry_rows
+      - dtako_ferry
   /ferry_rows/{id}:
     get:
       consumes:
@@ -401,7 +401,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get ferry row record by ID
       tags:
-      - ferry_rows
+      - dtako_ferry
   /ferry_rows/import:
     post:
       consumes:
@@ -431,7 +431,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Import ferry row records from production
       tags:
-      - ferry_rows
+      - dtako_ferry
   /rows:
     get:
       consumes:
@@ -465,7 +465,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: List Dtako Rows
       tags:
-      - dtako
+      - dtako_rows
   /rows/{id}:
     get:
       consumes:
@@ -490,7 +490,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get Dtako Row by ID
       tags:
-      - dtako
+      - dtako_rows
   /rows/import:
     post:
       consumes:
@@ -520,5 +520,5 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Import Dtako Rows
       tags:
-      - dtako
+      - dtako_rows
 swagger: "2.0"

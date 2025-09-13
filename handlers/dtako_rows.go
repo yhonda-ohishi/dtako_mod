@@ -32,7 +32,7 @@ func NewDtakoRowsHandler() *DtakoRowsHandler {
 // List lists dtako rows
 // @Summary      List Dtako Rows
 // @Description  Get vehicle operation data with optional date filtering
-// @Tags         dtako
+// @Tags         dtako_rows
 // @Accept       json
 // @Produce      json
 // @Param        from    query     string  false  "Start date (YYYY-MM-DD)"
@@ -59,7 +59,7 @@ func (h *DtakoRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 // Import imports dtako_rows from production
 // @Summary      Import Dtako Rows
 // @Description  Import vehicle operation data from production database
-// @Tags         dtako
+// @Tags         dtako_rows
 // @Accept       json
 // @Produce      json
 // @Param        request body models.ImportRequest true "Import request"
@@ -95,7 +95,7 @@ func (h *DtakoRowsHandler) Import(w http.ResponseWriter, r *http.Request) {
 // GetByID returns a specific dtako_row by ID
 // @Summary      Get Dtako Row by ID
 // @Description  Get specific vehicle operation data by ID
-// @Tags         dtako
+// @Tags         dtako_rows
 // @Accept       json
 // @Produce      json
 // @Param        id      path      string  true  "Row ID"
