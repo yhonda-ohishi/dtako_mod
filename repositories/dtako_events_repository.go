@@ -40,15 +40,8 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		return []models.DtakoEvent{}, fmt.Errorf("production database not available")
 	}
 
-	// 最初にテーブル存在確認
-	log.Printf("🔍 DEBUG: Testing table access")
-	var count int
-	err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM dtako_events").Scan(&count)
-	if err != nil {
-		log.Printf("❌ ERROR: Table access failed: %v", err)
-		return []models.DtakoEvent{}, err
-	}
-	log.Printf("✅ SUCCESS: Table has %d rows", count)
+	// テーブル存在確認（高速化のためCOUNT(*)は使わない）
+	log.Printf("🔍 DEBUG: Checking table access")
 
 	// 根本問題修正: 実際のテーブル構造に合わせたクエリ
 	// - created_at, updated_at カラムを除外
@@ -69,10 +62,8 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
 	`
 
-	// 昨日（2024-09-13）からのデータを取得するように固定
-	yesterday := time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC)
-	tomorrow := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
-	args := []interface{}{yesterday.Format("2006-01-02"), tomorrow.Format("2006-01-02")}
+	// パラメータで指定された日付範囲を使用
+	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
@@ -246,10 +237,8 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		FROM dtako_events
 		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
 	`
-	// 昨日（2024-09-13）からのデータを取得するように固定
-	yesterday := time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC)
-	tomorrow := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
-	args := []interface{}{yesterday.Format("2006-01-02"), tomorrow.Format("2006-01-02")}
+	// パラメータで指定された日付範囲を使用
+	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
