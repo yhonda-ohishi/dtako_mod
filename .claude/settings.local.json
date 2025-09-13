@@ -9,7 +9,11 @@
       "Bash(sed:*)",
       "Bash(git add:*)",
       "Read(//c/go/ryohi_sub_cal2/docs/**)",
-      "Read(//c/go/ryohi_sub_cal/mysqldata/**)"
+      "Read(//c/go/ryohi_sub_cal/mysqldata/**)",
+      "Read(//c/go/dtako_events/**)",
+      "Read(//c/go/dtako_rows/**)",
+      "Bash(swag init:*)",
+      "Read(//c/go/dtako_ferry/**)"
     ],
     "deny": [],
     "ask": []

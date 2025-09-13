@@ -91,7 +91,7 @@ func TestFilterEventsScenario(t *testing.T) {
 		importWithFilter := map[string]interface{}{
 			"from_date":  "2025-02-01",
 			"to_date":    "2025-02-28",
-			"event_type": "MAINTENANCE",
+			"event_type": "運転",
 		}
 		
 		bodyBytes, _ = json.Marshal(importWithFilter)
@@ -106,21 +106,21 @@ func TestFilterEventsScenario(t *testing.T) {
 		}
 		
 		// Verify imported events
-		req = httptest.NewRequest("GET", "/dtako/events?from=2025-02-01&to=2025-02-28&type=MAINTENANCE", nil)
+		req = httptest.NewRequest("GET", "/dtako/events?from=2025-02-01&to=2025-02-28&type=運転", nil)
 		rec = httptest.NewRecorder()
 		
 		r.ServeHTTP(rec, req)
 		
-		var maintenanceEvents []models.DtakoEvent
-		json.Unmarshal(rec.Body.Bytes(), &maintenanceEvents)
-		
-		for _, event := range maintenanceEvents {
-			if event.EventType != "MAINTENANCE" {
-				t.Errorf("Expected MAINTENANCE type, got %s", event.EventType)
+		var drivingEvents []models.DtakoEvent
+		json.Unmarshal(rec.Body.Bytes(), &drivingEvents)
+
+		for _, event := range drivingEvents {
+			if event.EventType != "運転" {
+				t.Errorf("Expected 運転 type, got %s", event.EventType)
 			}
 		}
 		
-		t.Logf("Total events: %d, Accident: %d, Start: %d, Maintenance: %d", 
-			totalCount, len(accidentEvents), len(startEvents), len(maintenanceEvents))
+		t.Logf("Total events: %d, Accident: %d, Start: %d, Driving: %d",
+			totalCount, len(accidentEvents), len(startEvents), len(drivingEvents))
 	})
 }
