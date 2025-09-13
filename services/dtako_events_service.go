@@ -22,7 +22,7 @@ func NewDtakoEventsService() *DtakoEventsService {
 }
 
 // GetEvents retrieves events within date range and optional type filter
-func (s *DtakoEventsService) GetEvents(from, to, eventType string) ([]models.DtakoEvent, error) {
+func (s *DtakoEventsService) GetEvents(from, to, eventType, unkoNo string) ([]models.DtakoEvent, error) {
 	// Parse dates if provided
 	var fromDate, toDate time.Time
 	var err error
@@ -45,7 +45,7 @@ func (s *DtakoEventsService) GetEvents(from, to, eventType string) ([]models.Dta
 		toDate = time.Now()
 	}
 
-	return s.repo.GetByDateRange(fromDate, toDate, eventType)
+	return s.repo.GetByDateRange(fromDate, toDate, eventType, unkoNo)
 }
 
 // GetEventByID retrieves a specific event by ID

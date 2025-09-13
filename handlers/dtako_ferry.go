@@ -22,18 +22,19 @@ func NewDtakoFerryHandler() *DtakoFerryHandler {
 	}
 }
 
-// List returns all dtako_ferry records
-// @Summary List dtako ferry records
-// @Description Get list of dtako ferry records with optional filters
-// @Tags dtako_ferry
-// @Accept json
-// @Produce json
-// @Param from query string false "From date (YYYY-MM-DD)"
-// @Param to query string false "To date (YYYY-MM-DD)"
-// @Param route query string false "Route filter"
-// @Success 200 {array} models.DtakoFerry
-// @Failure 500 {string} string "Internal Server Error"
-// @Router /api/dtako/ferry [get]
+// List lists dtako ferry records
+// @Summary      List Dtako Ferry Records
+// @Description  Get ferry operation data with optional filtering
+// @Tags         dtako
+// @Accept       json
+// @Produce      json
+// @Param        from    query     string  false  "Start date (YYYY-MM-DD)"
+// @Param        to      query     string  false  "End date (YYYY-MM-DD)"
+// @Param        route   query     string  false  "Route filter"
+// @Success      200     {array}   models.DtakoFerry  "List of dtako ferry records"
+// @Failure      400     {object}  models.ErrorResponse  "Invalid request parameters"
+// @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
+// @Router       /dtako/ferry [get]
 func (h *DtakoFerryHandler) List(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
 	from := r.URL.Query().Get("from")
@@ -51,16 +52,16 @@ func (h *DtakoFerryHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 // Import imports dtako_ferry data from production
-// @Summary Import dtako ferry data from production
-// @Description Import dtako ferry data from production database
-// @Tags dtako_ferry
-// @Accept json
-// @Produce json
-// @Param request body models.ImportRequest true "Import request"
-// @Success 200 {object} models.ImportResult
-// @Failure 400 {string} string "Bad Request"
-// @Failure 500 {string} string "Internal Server Error"
-// @Router /api/dtako/ferry/import [post]
+// @Summary      Import Dtako Ferry Data
+// @Description  Import ferry operation data from production database
+// @Tags         dtako
+// @Accept       json
+// @Produce      json
+// @Param        request body models.ImportRequest true "Import request"
+// @Success      200     {object}  models.ImportResult  "Import successful"
+// @Failure      400     {object}  models.ErrorResponse  "Bad Request"
+// @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
+// @Router       /dtako/ferry/import [post]
 func (h *DtakoFerryHandler) Import(w http.ResponseWriter, r *http.Request) {
 	var req models.ImportRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -87,15 +88,15 @@ func (h *DtakoFerryHandler) Import(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetByID returns a specific dtako_ferry record by ID
-// @Summary Get dtako ferry record by ID
-// @Description Get a specific dtako ferry record by its ID
-// @Tags dtako_ferry
-// @Accept json
-// @Produce json
-// @Param id path string true "Ferry record ID"
-// @Success 200 {object} models.DtakoFerry
-// @Failure 404 {string} string "Not Found"
-// @Router /api/dtako/ferry/{id} [get]
+// @Summary      Get Dtako Ferry Record by ID
+// @Description  Get specific ferry operation data by ID
+// @Tags         dtako
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string  true  "Ferry record ID"
+// @Success      200     {object}  models.DtakoFerry  "Dtako ferry record found"
+// @Failure      404     {object}  models.ErrorResponse  "Not Found"
+// @Router       /dtako/ferry/{id} [get]
 func (h *DtakoFerryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	

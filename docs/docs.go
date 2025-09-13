@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/dtako/events": {
+        "/dtako/events": {
             "get": {
-                "description": "Get list of dtako events with optional filters",
+                "description": "Get event data with location information and optional filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,19 +25,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_events"
+                    "dtako"
                 ],
-                "summary": "List dtako events",
+                "summary": "List Dtako Events",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "From date (YYYY-MM-DD)",
+                        "description": "Start date (YYYY-MM-DD)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "To date (YYYY-MM-DD)",
+                        "description": "End date (YYYY-MM-DD)",
                         "name": "to",
                         "in": "query"
                     },
@@ -46,11 +46,17 @@ const docTemplate = `{
                         "description": "Event type filter",
                         "name": "type",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by 運行NO (links to dtako_rows)",
+                        "name": "unko_no",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of dtako events",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -58,18 +64,24 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/events/import": {
+        "/dtako/events/import": {
             "post": {
-                "description": "Import dtako events data from production database",
+                "description": "Import event data from production database",
                 "consumes": [
                     "application/json"
                 ],
@@ -77,9 +89,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_events"
+                    "dtako"
                 ],
-                "summary": "Import dtako events from production",
+                "summary": "Import Dtako Events",
                 "parameters": [
                     {
                         "description": "Import request",
@@ -93,7 +105,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Import successful",
                         "schema": {
                             "$ref": "#/definitions/models.ImportResult"
                         }
@@ -101,21 +113,21 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/events/{id}": {
+        "/dtako/events/{id}": {
             "get": {
-                "description": "Get a specific dtako event by its ID",
+                "description": "Get specific event data by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -123,9 +135,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_events"
+                    "dtako"
                 ],
-                "summary": "Get dtako event by ID",
+                "summary": "Get Dtako Event by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -137,7 +149,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Dtako event found",
                         "schema": {
                             "$ref": "#/definitions/models.DtakoEvent"
                         }
@@ -145,15 +157,15 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/ferry": {
+        "/dtako/ferry": {
             "get": {
-                "description": "Get list of dtako ferry records with optional filters",
+                "description": "Get ferry operation data with optional filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -161,19 +173,19 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_ferry"
+                    "dtako"
                 ],
-                "summary": "List dtako ferry records",
+                "summary": "List Dtako Ferry Records",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "From date (YYYY-MM-DD)",
+                        "description": "Start date (YYYY-MM-DD)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "To date (YYYY-MM-DD)",
+                        "description": "End date (YYYY-MM-DD)",
                         "name": "to",
                         "in": "query"
                     },
@@ -186,7 +198,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of dtako ferry records",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -194,18 +206,24 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/ferry/import": {
+        "/dtako/ferry/import": {
             "post": {
-                "description": "Import dtako ferry data from production database",
+                "description": "Import ferry operation data from production database",
                 "consumes": [
                     "application/json"
                 ],
@@ -213,9 +231,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_ferry"
+                    "dtako"
                 ],
-                "summary": "Import dtako ferry data from production",
+                "summary": "Import Dtako Ferry Data",
                 "parameters": [
                     {
                         "description": "Import request",
@@ -229,7 +247,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Import successful",
                         "schema": {
                             "$ref": "#/definitions/models.ImportResult"
                         }
@@ -237,21 +255,21 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/ferry/{id}": {
+        "/dtako/ferry/{id}": {
             "get": {
-                "description": "Get a specific dtako ferry record by its ID",
+                "description": "Get specific ferry operation data by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -259,9 +277,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_ferry"
+                    "dtako"
                 ],
-                "summary": "Get dtako ferry record by ID",
+                "summary": "Get Dtako Ferry Record by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -273,7 +291,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Dtako ferry record found",
                         "schema": {
                             "$ref": "#/definitions/models.DtakoFerry"
                         }
@@ -281,15 +299,15 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/rows": {
+        "/dtako/rows": {
             "get": {
-                "description": "Get list of dtako rows with optional date filter",
+                "description": "Get vehicle operation data with optional date filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -297,26 +315,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_rows"
+                    "dtako"
                 ],
-                "summary": "List dtako rows",
+                "summary": "List Dtako Rows",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "From date (YYYY-MM-DD)",
+                        "description": "Start date (YYYY-MM-DD)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "To date (YYYY-MM-DD)",
+                        "description": "End date (YYYY-MM-DD)",
                         "name": "to",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of dtako rows",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -324,18 +342,24 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/rows/import": {
+        "/dtako/rows/import": {
             "post": {
-                "description": "Import dtako rows data from production database",
+                "description": "Import vehicle operation data from production database",
                 "consumes": [
                     "application/json"
                 ],
@@ -343,9 +367,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_rows"
+                    "dtako"
                 ],
-                "summary": "Import dtako rows from production",
+                "summary": "Import Dtako Rows",
                 "parameters": [
                     {
                         "description": "Import request",
@@ -359,7 +383,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Import successful",
                         "schema": {
                             "$ref": "#/definitions/models.ImportResult"
                         }
@@ -367,21 +391,21 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/dtako/rows/{id}": {
+        "/dtako/rows/{id}": {
             "get": {
-                "description": "Get a specific dtako row by its ID",
+                "description": "Get specific vehicle operation data by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -389,9 +413,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dtako_rows"
+                    "dtako"
                 ],
-                "summary": "Get dtako row by ID",
+                "summary": "Get Dtako Row by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -403,7 +427,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Dtako row found",
                         "schema": {
                             "$ref": "#/definitions/models.DtakoRow"
                         }
@@ -411,7 +435,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -423,34 +447,49 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Started driving from depot"
                 },
                 "driver_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "driver-123"
                 },
                 "event_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T10:30:00Z"
                 },
                 "event_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "運転"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "event-456"
                 },
                 "latitude": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 35.6762
                 },
                 "longitude": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 139.6503
+                },
+                "unko_no": {
+                    "description": "運行NO - links to DtakoRow",
+                    "type": "string",
+                    "example": "2025010101"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "vehicle_no": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "vehicle-001"
                 }
             }
         },
@@ -458,37 +497,48 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "arrival_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T12:00:00Z"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T00:00:00Z"
                 },
                 "departure_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T08:00:00Z"
                 },
                 "driver_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "driver-123"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ferry-789"
                 },
                 "passengers": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 150
                 },
                 "route": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Tokyo-Osaka"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "vehicle_no": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "vehicle-001"
                 },
                 "vehicles": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 30
                 }
             }
         },
@@ -496,31 +546,58 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T00:00:00Z"
                 },
                 "distance": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 123.45
                 },
                 "driver_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "driver-123"
                 },
                 "fuel_amount": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 45.67
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "row-123"
                 },
                 "route_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "route-A"
+                },
+                "unko_no": {
+                    "description": "運行NO",
+                    "type": "string",
+                    "example": "2025010101"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "vehicle_no": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "vehicle-001"
+                }
+            }
+        },
+        "models.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 400
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Invalid request parameters"
                 }
             }
         },
@@ -529,17 +606,21 @@ const docTemplate = `{
             "properties": {
                 "event_type": {
                     "description": "For events",
-                    "type": "string"
+                    "type": "string",
+                    "example": "運転"
                 },
                 "from_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-01"
                 },
                 "route": {
                     "description": "For ferry",
-                    "type": "string"
+                    "type": "string",
+                    "example": "Tokyo-Osaka"
                 },
                 "to_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-31"
                 }
             }
         },
@@ -553,16 +634,20 @@ const docTemplate = `{
                     }
                 },
                 "imported_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-01-13T15:04:05Z"
                 },
                 "imported_rows": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 150
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Imported 150 rows successfully"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         }
@@ -571,12 +656,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0.0",
+	Host:             "localhost:8080",
+	BasePath:         "/dtako",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "DTako API",
+	Description:      "Digital tachograph data management API for vehicle operation records",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

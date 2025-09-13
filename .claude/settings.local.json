@@ -7,7 +7,8 @@
       "Bash(go:*)",
       "Bash(cat:*)",
       "Bash(sed:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Read(//c/go/ryohi_sub_cal2/docs/**)"
     ],
     "deny": [],
     "ask": []

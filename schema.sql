@@ -7,6 +7,7 @@ USE dtako_local;
 -- dtako_rows table
 CREATE TABLE IF NOT EXISTS dtako_rows (
     id VARCHAR(255) PRIMARY KEY,
+    unko_no VARCHAR(255) UNIQUE NOT NULL,  -- 運行NO
     date DATE NOT NULL,
     vehicle_no VARCHAR(50),
     driver_code VARCHAR(50),
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS dtako_rows (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_date (date),
+    INDEX idx_unko_no (unko_no),
     INDEX idx_vehicle (vehicle_no),
     INDEX idx_driver (driver_code),
     INDEX idx_route (route_code)
@@ -24,6 +26,7 @@ CREATE TABLE IF NOT EXISTS dtako_rows (
 -- dtako_events table
 CREATE TABLE IF NOT EXISTS dtako_events (
     id VARCHAR(255) PRIMARY KEY,
+    unko_no VARCHAR(255),  -- 運行NO - links to dtako_rows
     event_date DATETIME NOT NULL,
     event_type VARCHAR(50),
     vehicle_no VARCHAR(50),
@@ -36,7 +39,9 @@ CREATE TABLE IF NOT EXISTS dtako_events (
     INDEX idx_event_date (event_date),
     INDEX idx_event_type (event_type),
     INDEX idx_vehicle (vehicle_no),
-    INDEX idx_driver (driver_code)
+    INDEX idx_driver (driver_code),
+    INDEX idx_unko_no (unko_no),
+    FOREIGN KEY (unko_no) REFERENCES dtako_rows(unko_no) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- dtako_ferry table

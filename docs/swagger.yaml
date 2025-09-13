@@ -1,84 +1,136 @@
+basePath: /dtako
 definitions:
   models.DtakoEvent:
     properties:
       created_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       description:
+        example: Started driving from depot
         type: string
       driver_code:
+        example: driver-123
         type: string
       event_date:
+        example: "2025-01-13T10:30:00Z"
         type: string
       event_type:
+        example: 運転
         type: string
       id:
+        example: event-456
         type: string
       latitude:
+        example: 35.6762
         type: number
       longitude:
+        example: 139.6503
         type: number
+      unko_no:
+        description: 運行NO - links to DtakoRow
+        example: "2025010101"
+        type: string
       updated_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       vehicle_no:
+        example: vehicle-001
         type: string
     type: object
   models.DtakoFerry:
     properties:
       arrival_time:
+        example: "2025-01-13T12:00:00Z"
         type: string
       created_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       date:
+        example: "2025-01-13T00:00:00Z"
         type: string
       departure_time:
+        example: "2025-01-13T08:00:00Z"
         type: string
       driver_code:
+        example: driver-123
         type: string
       id:
+        example: ferry-789
         type: string
       passengers:
+        example: 150
         type: integer
       route:
+        example: Tokyo-Osaka
         type: string
       updated_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       vehicle_no:
+        example: vehicle-001
         type: string
       vehicles:
+        example: 30
         type: integer
     type: object
   models.DtakoRow:
     properties:
       created_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       date:
+        example: "2025-01-13T00:00:00Z"
         type: string
       distance:
+        example: 123.45
         type: number
       driver_code:
+        example: driver-123
         type: string
       fuel_amount:
+        example: 45.67
         type: number
       id:
+        example: row-123
         type: string
       route_code:
+        example: route-A
+        type: string
+      unko_no:
+        description: 運行NO
+        example: "2025010101"
         type: string
       updated_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       vehicle_no:
+        example: vehicle-001
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: Invalid request parameters
         type: string
     type: object
   models.ImportRequest:
     properties:
       event_type:
         description: For events
+        example: 運転
         type: string
       from_date:
+        example: "2025-01-01"
         type: string
       route:
         description: For ferry
+        example: Tokyo-Osaka
         type: string
       to_date:
+        example: "2025-01-31"
         type: string
     type: object
   models.ImportResult:
@@ -88,28 +140,36 @@ definitions:
           type: string
         type: array
       imported_at:
+        example: "2025-01-13T15:04:05Z"
         type: string
       imported_rows:
+        example: 150
         type: integer
       message:
+        example: Imported 150 rows successfully
         type: string
       success:
+        example: true
         type: boolean
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: Digital tachograph data management API for vehicle operation records
+  title: DTako API
+  version: 1.0.0
 paths:
-  /api/dtako/events:
+  /dtako/events:
     get:
       consumes:
       - application/json
-      description: Get list of dtako events with optional filters
+      description: Get event data with location information and optional filtering
       parameters:
-      - description: From date (YYYY-MM-DD)
+      - description: Start date (YYYY-MM-DD)
         in: query
         name: from
         type: string
-      - description: To date (YYYY-MM-DD)
+      - description: End date (YYYY-MM-DD)
         in: query
         name: to
         type: string
@@ -117,27 +177,35 @@ paths:
         in: query
         name: type
         type: string
+      - description: Filter by 運行NO (links to dtako_rows)
+        in: query
+        name: unko_no
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of dtako events
           schema:
             items:
               $ref: '#/definitions/models.DtakoEvent'
             type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: List dtako events
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List Dtako Events
       tags:
-      - dtako_events
-  /api/dtako/events/{id}:
+      - dtako
+  /dtako/events/{id}:
     get:
       consumes:
       - application/json
-      description: Get a specific dtako event by its ID
+      description: Get specific event data by ID
       parameters:
       - description: Event ID
         in: path
@@ -148,21 +216,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Dtako event found
           schema:
             $ref: '#/definitions/models.DtakoEvent'
         "404":
           description: Not Found
           schema:
-            type: string
-      summary: Get dtako event by ID
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get Dtako Event by ID
       tags:
-      - dtako_events
-  /api/dtako/events/import:
+      - dtako
+  /dtako/events/import:
     post:
       consumes:
       - application/json
-      description: Import dtako events data from production database
+      description: Import event data from production database
       parameters:
       - description: Import request
         in: body
@@ -174,31 +242,31 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Import successful
           schema:
             $ref: '#/definitions/models.ImportResult'
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: Import dtako events from production
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Import Dtako Events
       tags:
-      - dtako_events
-  /api/dtako/ferry:
+      - dtako
+  /dtako/ferry:
     get:
       consumes:
       - application/json
-      description: Get list of dtako ferry records with optional filters
+      description: Get ferry operation data with optional filtering
       parameters:
-      - description: From date (YYYY-MM-DD)
+      - description: Start date (YYYY-MM-DD)
         in: query
         name: from
         type: string
-      - description: To date (YYYY-MM-DD)
+      - description: End date (YYYY-MM-DD)
         in: query
         name: to
         type: string
@@ -210,23 +278,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of dtako ferry records
           schema:
             items:
               $ref: '#/definitions/models.DtakoFerry'
             type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: List dtako ferry records
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List Dtako Ferry Records
       tags:
-      - dtako_ferry
-  /api/dtako/ferry/{id}:
+      - dtako
+  /dtako/ferry/{id}:
     get:
       consumes:
       - application/json
-      description: Get a specific dtako ferry record by its ID
+      description: Get specific ferry operation data by ID
       parameters:
       - description: Ferry record ID
         in: path
@@ -237,21 +309,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Dtako ferry record found
           schema:
             $ref: '#/definitions/models.DtakoFerry'
         "404":
           description: Not Found
           schema:
-            type: string
-      summary: Get dtako ferry record by ID
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get Dtako Ferry Record by ID
       tags:
-      - dtako_ferry
-  /api/dtako/ferry/import:
+      - dtako
+  /dtako/ferry/import:
     post:
       consumes:
       - application/json
-      description: Import dtako ferry data from production database
+      description: Import ferry operation data from production database
       parameters:
       - description: Import request
         in: body
@@ -263,31 +335,31 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Import successful
           schema:
             $ref: '#/definitions/models.ImportResult'
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: Import dtako ferry data from production
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Import Dtako Ferry Data
       tags:
-      - dtako_ferry
-  /api/dtako/rows:
+      - dtako
+  /dtako/rows:
     get:
       consumes:
       - application/json
-      description: Get list of dtako rows with optional date filter
+      description: Get vehicle operation data with optional date filtering
       parameters:
-      - description: From date (YYYY-MM-DD)
+      - description: Start date (YYYY-MM-DD)
         in: query
         name: from
         type: string
-      - description: To date (YYYY-MM-DD)
+      - description: End date (YYYY-MM-DD)
         in: query
         name: to
         type: string
@@ -295,23 +367,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of dtako rows
           schema:
             items:
               $ref: '#/definitions/models.DtakoRow'
             type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: List dtako rows
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List Dtako Rows
       tags:
-      - dtako_rows
-  /api/dtako/rows/{id}:
+      - dtako
+  /dtako/rows/{id}:
     get:
       consumes:
       - application/json
-      description: Get a specific dtako row by its ID
+      description: Get specific vehicle operation data by ID
       parameters:
       - description: Row ID
         in: path
@@ -322,21 +398,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Dtako row found
           schema:
             $ref: '#/definitions/models.DtakoRow'
         "404":
           description: Not Found
           schema:
-            type: string
-      summary: Get dtako row by ID
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get Dtako Row by ID
       tags:
-      - dtako_rows
-  /api/dtako/rows/import:
+      - dtako
+  /dtako/rows/import:
     post:
       consumes:
       - application/json
-      description: Import dtako rows data from production database
+      description: Import vehicle operation data from production database
       parameters:
       - description: Import request
         in: body
@@ -348,18 +424,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Import successful
           schema:
             $ref: '#/definitions/models.ImportResult'
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
-      summary: Import dtako rows from production
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Import Dtako Rows
       tags:
-      - dtako_rows
+      - dtako
 swagger: "2.0"

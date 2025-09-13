@@ -18,7 +18,7 @@ type DtakoRowsRepository struct {
 func NewDtakoRowsRepository() *DtakoRowsRepository {
 	prodDB, _ := GetProductionDB()
 	localDB, _ := GetLocalDB()
-	
+
 	return &DtakoRowsRepository{
 		prodDB:  prodDB,
 		localDB: localDB,
@@ -28,7 +28,7 @@ func NewDtakoRowsRepository() *DtakoRowsRepository {
 // GetByDateRange retrieves rows within a date range from local database
 func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.DtakoRow, error) {
 	query := `
-		SELECT id, date, vehicle_no, driver_code, route_code, 
+		SELECT id, unko_no, date, vehicle_no, driver_code, route_code,
 		       distance, fuel_amount, created_at, updated_at
 		FROM dtako_rows
 		WHERE date BETWEEN ? AND ?
@@ -45,7 +45,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	for rows.Next() {
 		var row models.DtakoRow
 		err := rows.Scan(
-			&row.ID, &row.Date, &row.VehicleNo, &row.DriverCode,
+			&row.ID, &row.UnkoNo, &row.Date, &row.VehicleNo, &row.DriverCode,
 			&row.RouteCode, &row.Distance, &row.FuelAmount,
 			&row.CreatedAt, &row.UpdatedAt,
 		)
@@ -61,7 +61,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 // GetByID retrieves a specific row by ID from local database
 func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 	query := `
-		SELECT id, date, vehicle_no, driver_code, route_code, 
+		SELECT id, unko_no, date, vehicle_no, driver_code, route_code,
 		       distance, fuel_amount, created_at, updated_at
 		FROM dtako_rows
 		WHERE id = ?
@@ -69,7 +69,7 @@ func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 
 	var row models.DtakoRow
 	err := r.localDB.QueryRow(query, id).Scan(
-		&row.ID, &row.Date, &row.VehicleNo, &row.DriverCode,
+		&row.ID, &row.UnkoNo, &row.Date, &row.VehicleNo, &row.DriverCode,
 		&row.RouteCode, &row.Distance, &row.FuelAmount,
 		&row.CreatedAt, &row.UpdatedAt,
 	)
@@ -81,14 +81,14 @@ func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 	return &row, nil
 }
 
-// FetchFromProduction fetches data from production database
+// FetchFromProduction fetches row data from production database
 func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.DtakoRow, error) {
 	if r.prodDB == nil {
 		return []models.DtakoRow{}, fmt.Errorf("production database not connected")
 	}
 
 	query := `
-		SELECT id, date, vehicle_no, driver_code, route_code, 
+		SELECT id, unko_no, date, vehicle_no, driver_code, route_code,
 		       distance, fuel_amount, created_at, updated_at
 		FROM dtako_rows
 		WHERE date BETWEEN ? AND ?
@@ -105,7 +105,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 	for rows.Next() {
 		var row models.DtakoRow
 		err := rows.Scan(
-			&row.ID, &row.Date, &row.VehicleNo, &row.DriverCode,
+			&row.ID, &row.UnkoNo, &row.Date, &row.VehicleNo, &row.DriverCode,
 			&row.RouteCode, &row.Distance, &row.FuelAmount,
 			&row.CreatedAt, &row.UpdatedAt,
 		)
@@ -121,10 +121,11 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 // Insert inserts a row into local database
 func (r *DtakoRowsRepository) Insert(row *models.DtakoRow) error {
 	query := `
-		INSERT INTO dtako_rows (id, date, vehicle_no, driver_code, route_code, 
-		                        distance, fuel_amount, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO dtako_rows (id, unko_no, date, vehicle_no, driver_code, route_code,
+		                       distance, fuel_amount, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
+		    unko_no = VALUES(unko_no),
 		    date = VALUES(date),
 		    vehicle_no = VALUES(vehicle_no),
 		    driver_code = VALUES(driver_code),
@@ -135,7 +136,7 @@ func (r *DtakoRowsRepository) Insert(row *models.DtakoRow) error {
 	`
 
 	_, err := r.localDB.Exec(query,
-		row.ID, row.Date, row.VehicleNo, row.DriverCode,
+		row.ID, row.UnkoNo, row.Date, row.VehicleNo, row.DriverCode,
 		row.RouteCode, row.Distance, row.FuelAmount,
 		row.CreatedAt, row.UpdatedAt,
 	)

@@ -18,7 +18,7 @@ type DtakoEventsRepository struct {
 func NewDtakoEventsRepository() *DtakoEventsRepository {
 	prodDB, _ := GetProductionDB()
 	localDB, _ := GetLocalDB()
-	
+
 	return &DtakoEventsRepository{
 		prodDB:  prodDB,
 		localDB: localDB,
@@ -26,9 +26,9 @@ func NewDtakoEventsRepository() *DtakoEventsRepository {
 }
 
 // GetByDateRange retrieves events within a date range from local database
-func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType string) ([]models.DtakoEvent, error) {
+func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, unkoNo string) ([]models.DtakoEvent, error) {
 	query := `
-		SELECT id, event_date, event_type, vehicle_no, driver_code, 
+		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
 		       description, latitude, longitude, created_at, updated_at
 		FROM dtako_events
 		WHERE event_date BETWEEN ? AND ?
@@ -38,6 +38,11 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType str
 	if eventType != "" {
 		query += " AND event_type = ?"
 		args = append(args, eventType)
+	}
+
+	if unkoNo != "" {
+		query += " AND unko_no = ?"
+		args = append(args, unkoNo)
 	}
 
 	query += " ORDER BY event_date DESC"
@@ -52,7 +57,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType str
 	for rows.Next() {
 		var event models.DtakoEvent
 		err := rows.Scan(
-			&event.ID, &event.EventDate, &event.EventType, &event.VehicleNo,
+			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
 			&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
 			&event.CreatedAt, &event.UpdatedAt,
 		)
@@ -68,7 +73,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType str
 // GetByID retrieves a specific event by ID from local database
 func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 	query := `
-		SELECT id, event_date, event_type, vehicle_no, driver_code, 
+		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
 		       description, latitude, longitude, created_at, updated_at
 		FROM dtako_events
 		WHERE id = ?
@@ -76,7 +81,7 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 
 	var event models.DtakoEvent
 	err := r.localDB.QueryRow(query, id).Scan(
-		&event.ID, &event.EventDate, &event.EventType, &event.VehicleNo,
+		&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
 		&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
 		&event.CreatedAt, &event.UpdatedAt,
 	)
@@ -95,7 +100,7 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 	}
 
 	query := `
-		SELECT id, event_date, event_type, vehicle_no, driver_code, 
+		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
 		       description, latitude, longitude, created_at, updated_at
 		FROM dtako_events
 		WHERE event_date BETWEEN ? AND ?
@@ -119,7 +124,7 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 	for rows.Next() {
 		var event models.DtakoEvent
 		err := rows.Scan(
-			&event.ID, &event.EventDate, &event.EventType, &event.VehicleNo,
+			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
 			&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
 			&event.CreatedAt, &event.UpdatedAt,
 		)
@@ -135,10 +140,11 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 // Insert inserts an event into local database
 func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
 	query := `
-		INSERT INTO dtako_events (id, event_date, event_type, vehicle_no, driver_code, 
+		INSERT INTO dtako_events (id, unko_no, event_date, event_type, vehicle_no, driver_code,
 		                         description, latitude, longitude, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
+		    unko_no = VALUES(unko_no),
 		    event_date = VALUES(event_date),
 		    event_type = VALUES(event_type),
 		    vehicle_no = VALUES(vehicle_no),
@@ -149,8 +155,9 @@ func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
 		    updated_at = VALUES(updated_at)
 	`
 
+	unkoNo := sql.NullString{String: event.UnkoNo, Valid: event.UnkoNo != ""}
 	_, err := r.localDB.Exec(query,
-		event.ID, event.EventDate, event.EventType, event.VehicleNo,
+		event.ID, unkoNo, event.EventDate, event.EventType, event.VehicleNo,
 		event.DriverCode, event.Description, event.Latitude, event.Longitude,
 		event.CreatedAt, event.UpdatedAt,
 	)
