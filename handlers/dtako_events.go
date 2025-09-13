@@ -23,6 +23,17 @@ func NewDtakoEventsHandler() *DtakoEventsHandler {
 }
 
 // List returns all dtako_events
+// @Summary List dtako events
+// @Description Get list of dtako events with optional filters
+// @Tags dtako_events
+// @Accept json
+// @Produce json
+// @Param from query string false "From date (YYYY-MM-DD)"
+// @Param to query string false "To date (YYYY-MM-DD)"
+// @Param type query string false "Event type filter"
+// @Success 200 {array} models.DtakoEvent
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/dtako/events [get]
 func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
 	from := r.URL.Query().Get("from")
@@ -40,6 +51,16 @@ func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 // Import imports dtako_events from production
+// @Summary Import dtako events from production
+// @Description Import dtako events data from production database
+// @Tags dtako_events
+// @Accept json
+// @Produce json
+// @Param request body models.ImportRequest true "Import request"
+// @Success 200 {object} models.ImportResult
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/dtako/events/import [post]
 func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 	var req models.ImportRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -66,6 +87,15 @@ func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetByID returns a specific dtako_event by ID
+// @Summary Get dtako event by ID
+// @Description Get a specific dtako event by its ID
+// @Tags dtako_events
+// @Accept json
+// @Produce json
+// @Param id path string true "Event ID"
+// @Success 200 {object} models.DtakoEvent
+// @Failure 404 {string} string "Not Found"
+// @Router /api/dtako/events/{id} [get]
 func (h *DtakoEventsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	

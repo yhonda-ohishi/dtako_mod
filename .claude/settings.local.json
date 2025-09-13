@@ -6,7 +6,8 @@
       "Bash(mkdir:*)",
       "Bash(go:*)",
       "Bash(cat:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

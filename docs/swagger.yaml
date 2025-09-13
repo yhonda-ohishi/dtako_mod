@@ -1,0 +1,365 @@
+definitions:
+  models.DtakoEvent:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      driver_code:
+        type: string
+      event_date:
+        type: string
+      event_type:
+        type: string
+      id:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      updated_at:
+        type: string
+      vehicle_no:
+        type: string
+    type: object
+  models.DtakoFerry:
+    properties:
+      arrival_time:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      departure_time:
+        type: string
+      driver_code:
+        type: string
+      id:
+        type: string
+      passengers:
+        type: integer
+      route:
+        type: string
+      updated_at:
+        type: string
+      vehicle_no:
+        type: string
+      vehicles:
+        type: integer
+    type: object
+  models.DtakoRow:
+    properties:
+      created_at:
+        type: string
+      date:
+        type: string
+      distance:
+        type: number
+      driver_code:
+        type: string
+      fuel_amount:
+        type: number
+      id:
+        type: string
+      route_code:
+        type: string
+      updated_at:
+        type: string
+      vehicle_no:
+        type: string
+    type: object
+  models.ImportRequest:
+    properties:
+      event_type:
+        description: For events
+        type: string
+      from_date:
+        type: string
+      route:
+        description: For ferry
+        type: string
+      to_date:
+        type: string
+    type: object
+  models.ImportResult:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      imported_at:
+        type: string
+      imported_rows:
+        type: integer
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /api/dtako/events:
+    get:
+      consumes:
+      - application/json
+      description: Get list of dtako events with optional filters
+      parameters:
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      - description: Event type filter
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DtakoEvent'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List dtako events
+      tags:
+      - dtako_events
+  /api/dtako/events/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific dtako event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DtakoEvent'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get dtako event by ID
+      tags:
+      - dtako_events
+  /api/dtako/events/import:
+    post:
+      consumes:
+      - application/json
+      description: Import dtako events data from production database
+      parameters:
+      - description: Import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ImportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ImportResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Import dtako events from production
+      tags:
+      - dtako_events
+  /api/dtako/ferry:
+    get:
+      consumes:
+      - application/json
+      description: Get list of dtako ferry records with optional filters
+      parameters:
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      - description: Route filter
+        in: query
+        name: route
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DtakoFerry'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List dtako ferry records
+      tags:
+      - dtako_ferry
+  /api/dtako/ferry/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific dtako ferry record by its ID
+      parameters:
+      - description: Ferry record ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DtakoFerry'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get dtako ferry record by ID
+      tags:
+      - dtako_ferry
+  /api/dtako/ferry/import:
+    post:
+      consumes:
+      - application/json
+      description: Import dtako ferry data from production database
+      parameters:
+      - description: Import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ImportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ImportResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Import dtako ferry data from production
+      tags:
+      - dtako_ferry
+  /api/dtako/rows:
+    get:
+      consumes:
+      - application/json
+      description: Get list of dtako rows with optional date filter
+      parameters:
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DtakoRow'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List dtako rows
+      tags:
+      - dtako_rows
+  /api/dtako/rows/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a specific dtako row by its ID
+      parameters:
+      - description: Row ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DtakoRow'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get dtako row by ID
+      tags:
+      - dtako_rows
+  /api/dtako/rows/import:
+    post:
+      consumes:
+      - application/json
+      description: Import dtako rows data from production database
+      parameters:
+      - description: Import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ImportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ImportResult'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Import dtako rows from production
+      tags:
+      - dtako_rows
+swagger: "2.0"

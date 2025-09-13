@@ -1,4 +1,4 @@
-.PHONY: help test test-contract test-integration setup-db run build clean
+.PHONY: help test test-contract test-integration setup-db run build clean swag swag-init
 
 # Default target
 help:
@@ -10,6 +10,8 @@ help:
 	@echo "  make run           - Run the application"
 	@echo "  make build         - Build the application"
 	@echo "  make clean         - Clean build artifacts"
+	@echo "  make swag          - Generate Swagger documentation"
+	@echo "  make swag-init     - Initialize and generate Swagger documentation"
 
 # Run all tests
 test:
@@ -61,3 +63,17 @@ coverage-report:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
+
+# Generate Swagger documentation
+swag:
+	swag init -g main.go --output docs
+	@echo "Swagger documentation generated in docs/"
+
+# Initialize and generate Swagger documentation (first time setup)
+swag-init:
+	go install github.com/swaggo/swag/cmd/swag@latest
+	swag init -g main.go --output docs
+	@echo "Swagger documentation initialized and generated in docs/"
+
+# Run application with swagger docs regeneration
+run-with-docs: swag run
