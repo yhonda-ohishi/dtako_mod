@@ -48,7 +48,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		query = `
 			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
 			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       '' as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
 			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
 			WHERE DATE(開始日時) BETWEEN ? AND ?
@@ -158,7 +158,7 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 		query = `
 			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
 			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       '' as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
 			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
 			WHERE id = ?
@@ -237,7 +237,7 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		query = `
 			SELECT id, COALESCE(運行NO, '') as unko_no, 開始日時 as event_date, イベント名 as event_type,
 			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       '' as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
 			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
 			WHERE DATE(開始日時) BETWEEN ? AND ?
