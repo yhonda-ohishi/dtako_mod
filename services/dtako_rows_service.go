@@ -73,6 +73,11 @@ func (s *DtakoRowsService) ImportFromProduction(fromDate, toDate string) (*model
 		return nil, fmt.Errorf("invalid to date: %v", err)
 	}
 
+	// Validate date range
+	if from.After(to) {
+		return nil, fmt.Errorf("from_date cannot be after to_date")
+	}
+
 	// Fetch from production
 	rows, err := s.repo.FetchFromProduction(from, to)
 	if err != nil {

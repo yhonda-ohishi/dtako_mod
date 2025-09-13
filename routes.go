@@ -9,10 +9,13 @@ import (
 
 // RegisterRoutes registers all dtako_mod routes to the provided router
 func RegisterRoutes(r chi.Router) {
+	// Initialize database connections
+	// This is done automatically when handlers are created
+
 	// Create handlers
 	rowsHandler := handlers.NewDtakoRowsHandler()
 	eventsHandler := handlers.NewDtakoEventsHandler()
-	ferryHandler := handlers.NewDtakoFerryHandler()
+	ferryRowsHandler := handlers.NewDtakoFerryRowsHandler()
 
 	// Register routes
 	r.Route("/dtako", func(r chi.Router) {
@@ -30,11 +33,11 @@ func RegisterRoutes(r chi.Router) {
 			r.Get("/{id}", eventsHandler.GetByID)
 		})
 
-		// dtako_ferry endpoints
-		r.Route("/ferry", func(r chi.Router) {
-			r.Get("/", ferryHandler.List)
-			r.Post("/import", ferryHandler.Import)
-			r.Get("/{id}", ferryHandler.GetByID)
+		// dtako_ferry_rows endpoints
+		r.Route("/ferry_rows", func(r chi.Router) {
+			r.Get("/", ferryRowsHandler.List)
+			r.Post("/import", ferryRowsHandler.Import)
+			r.Get("/{id}", ferryRowsHandler.GetByID)
 		})
 	})
 }

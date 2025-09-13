@@ -37,41 +37,119 @@ definitions:
         example: vehicle-001
         type: string
     type: object
-  models.DtakoFerry:
+  models.DtakoFerryRow:
     properties:
-      arrival_time:
+      boarding_code:
+        description: 乗場CD
+        example: 1
+        type: integer
+      boarding_name:
+        description: 乗場名
+        example: 東京港
+        type: string
+      contract_fare:
+        description: 契約料金
+        example: 8000
+        type: integer
+      driver_code_1:
+        description: 乗務員CD1
+        example: 1001
+        type: integer
+      driver_name_1:
+        description: 乗務員名１
+        example: 山田太郎
+        type: string
+      end_time:
+        description: 終了日時
         example: "2025-01-13T12:00:00Z"
         type: string
-      created_at:
-        example: "2025-01-13T15:04:05Z"
+      estimated_distance:
+        description: 見なし距離
+        example: 500
+        type: integer
+      ferry_company_code:
+        description: フェリー会社CD
+        example: 1
+        type: integer
+      ferry_company_name:
+        description: フェリー会社名
+        example: 東京フェリー
         type: string
-      date:
-        example: "2025-01-13T00:00:00Z"
-        type: string
-      departure_time:
-        example: "2025-01-13T08:00:00Z"
-        type: string
-      driver_code:
-        example: driver-123
+      ferry_search:
+        description: ferry_srch
+        example: 東京-大阪
         type: string
       id:
-        example: ferry-789
-        type: string
-      passengers:
-        example: 150
+        example: 1
         type: integer
-      route:
-        example: Tokyo-Osaka
-        type: string
-      updated_at:
-        example: "2025-01-13T15:04:05Z"
-        type: string
-      vehicle_no:
-        example: vehicle-001
-        type: string
-      vehicles:
-        example: 30
+      landing_code:
+        description: 降場CD
+        example: 2
         type: integer
+      landing_name:
+        description: 降場名
+        example: 大阪港
+        type: string
+      office_code:
+        description: 事業所CD
+        example: 1
+        type: integer
+      office_name:
+        description: 事業所名
+        example: 東京事業所
+        type: string
+      read_date:
+        description: 読取日
+        example: "2025-01-13T00:00:00Z"
+        type: string
+      settlement_class:
+        description: 精算区分
+        example: 1
+        type: integer
+      settlement_name:
+        description: 精算区分名
+        example: 現金
+        type: string
+      ship_number:
+        description: 便
+        example: 1便
+        type: string
+      ship_vehicle_class:
+        description: 航送車種区分
+        example: 1
+        type: integer
+      ship_vehicle_name:
+        description: 航送車種区分名
+        example: 大型車
+        type: string
+      standard_fare:
+        description: 標準料金
+        example: 10000
+        type: integer
+      start_time:
+        description: 開始日時
+        example: "2025-01-13T08:00:00Z"
+        type: string
+      target_driver_class:
+        description: 対象乗務員区分
+        example: 1
+        type: integer
+      unko_date:
+        description: 運行日
+        example: "2025-01-13T00:00:00Z"
+        type: string
+      unko_no:
+        description: 運行NO
+        example: "2025010101"
+        type: string
+      vehicle_code:
+        description: 車輌CD
+        example: 101
+        type: integer
+      vehicle_name:
+        description: 車輌名
+        example: トラック1号
+        type: string
     type: object
   models.DtakoRow:
     properties:
@@ -122,12 +200,12 @@ definitions:
         description: For events
         example: 運転
         type: string
+      ferry_company:
+        description: For ferry rows
+        example: 東京フェリー
+        type: string
       from_date:
         example: "2025-01-01"
-        type: string
-      route:
-        description: For ferry
-        example: Tokyo-Osaka
         type: string
       to_date:
         example: "2025-01-31"
@@ -256,11 +334,12 @@ paths:
       summary: Import Dtako Events
       tags:
       - dtako
-  /dtako/ferry:
+  /dtako/ferry_rows:
     get:
       consumes:
       - application/json
-      description: Get ferry operation data with optional filtering
+      description: Retrieve ferry row records with optional date range and ferry company
+        filter
       parameters:
       - description: Start date (YYYY-MM-DD)
         in: query
@@ -270,37 +349,37 @@ paths:
         in: query
         name: to
         type: string
-      - description: Route filter
+      - description: Filter by ferry company name
         in: query
-        name: route
+        name: ferry_company
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: List of dtako ferry records
+          description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DtakoFerry'
+              $ref: '#/definitions/models.DtakoFerryRow'
             type: array
         "400":
-          description: Invalid request parameters
+          description: Bad Request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: List Dtako Ferry Records
+      summary: List ferry row records
       tags:
-      - dtako
-  /dtako/ferry/{id}:
+      - ferry_rows
+  /dtako/ferry_rows/{id}:
     get:
       consumes:
       - application/json
-      description: Get specific ferry operation data by ID
+      description: Retrieve a specific ferry row record by its ID
       parameters:
-      - description: Ferry record ID
+      - description: Ferry row record ID
         in: path
         name: id
         required: true
@@ -309,23 +388,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: Dtako ferry record found
+          description: OK
           schema:
-            $ref: '#/definitions/models.DtakoFerry'
+            $ref: '#/definitions/models.DtakoFerryRow'
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Get Dtako Ferry Record by ID
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get ferry row record by ID
       tags:
-      - dtako
-  /dtako/ferry/import:
+      - ferry_rows
+  /dtako/ferry_rows/import:
     post:
       consumes:
       - application/json
-      description: Import ferry operation data from production database
+      description: Import ferry row records from production database for a date range
       parameters:
-      - description: Import request
+      - description: Import request with date range and optional ferry company filter
         in: body
         name: request
         required: true
@@ -335,7 +418,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Import successful
+          description: OK
           schema:
             $ref: '#/definitions/models.ImportResult'
         "400":
@@ -346,9 +429,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Import Dtako Ferry Data
+      summary: Import ferry row records from production
       tags:
-      - dtako
+      - ferry_rows
   /dtako/rows:
     get:
       consumes:

@@ -8,7 +8,8 @@
       "Bash(cat:*)",
       "Bash(sed:*)",
       "Bash(git add:*)",
-      "Read(//c/go/ryohi_sub_cal2/docs/**)"
+      "Read(//c/go/ryohi_sub_cal2/docs/**)",
+      "Read(//c/go/ryohi_sub_cal/mysqldata/**)"
     ],
     "deny": [],
     "ask": []

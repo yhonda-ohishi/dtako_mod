@@ -51,7 +51,7 @@ func TestPostDtakoEventsImport(t *testing.T) {
 			requestBody: map[string]interface{}{
 				"from_date":   "2025-01-01",
 				"to_date":     "2025-01-31",
-				"event_type":  "ACCIDENT",
+				"event_type":  "START",
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {

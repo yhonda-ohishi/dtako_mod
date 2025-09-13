@@ -1,17 +1,17 @@
 -- Test data for dtako_rows
-INSERT INTO dtako_rows (id, date, vehicle_no, driver_code, route_code, distance, fuel_amount) VALUES
-('ROW001', '2024-01-15', 'V001', 'D001', 'R001', 150.5, 20.3),
-('ROW002', '2024-01-15', 'V002', 'D002', 'R002', 200.8, 25.7),
-('ROW003', '2024-01-16', 'V001', 'D001', 'R003', 175.2, 22.1);
+INSERT INTO dtako_rows (id, unko_no, date, vehicle_no, driver_code, route_code, distance, fuel_amount) VALUES
+('ROW001', '2024011501', '2024-01-15', 'V001', 'D001', 'R001', 150.5, 20.3),
+('ROW002', '2024011502', '2024-01-15', 'V002', 'D002', 'R002', 200.8, 25.7),
+('ROW003', '2024011601', '2024-01-16', 'V001', 'D001', 'R003', 175.2, 22.1);
 
 -- Test data for dtako_events
-INSERT INTO dtako_events (id, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
-('EVENT001', '2024-01-15 08:30:00', 'START', 'V001', 'D001', 'Trip started', 35.6762, 139.6503),
-('EVENT002', '2024-01-15 12:15:00', 'STOP', 'V001', 'D001', 'Lunch break', 35.6895, 139.6917),
-('EVENT003', '2024-01-15 16:45:00', 'END', 'V001', 'D001', 'Trip ended', 35.6762, 139.6503);
+INSERT INTO dtako_events (id, unko_no, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
+('EVENT001', '2024011501', '2024-01-15 08:30:00', 'START', 'V001', 'D001', 'Trip started', 35.6762, 139.6503),
+('EVENT002', '2024011501', '2024-01-15 12:15:00', 'STOP', 'V001', 'D001', 'Lunch break', 35.6895, 139.6917),
+('EVENT003', '2024011501', '2024-01-15 16:45:00', 'END', 'V001', 'D001', 'Trip ended', 35.6762, 139.6503);
 
--- Test data for dtako_ferry
-INSERT INTO dtako_ferry (id, date, route, vehicle_no, driver_code, departure_time, arrival_time, passengers, vehicles) VALUES
-('FERRY001', '2024-01-15', 'ROUTE_A', 'F001', 'D001', '08:00:00', '10:00:00', 150, 25),
-('FERRY002', '2024-01-15', 'ROUTE_B', 'F002', 'D002', '09:30:00', '11:30:00', 200, 30),
-('FERRY003', '2024-01-16', 'ROUTE_A', 'F001', 'D001', '08:00:00', '10:00:00', 175, 28);
+-- Test data for dtako_ferry_rows
+INSERT INTO dtako_ferry_rows (運行NO, 運行日, 読取日, 事業所CD, 事業所名, 車輌CD, 車輌名, 乗務員CD1, 乗務員名１, 対象乗務員区分, 開始日時, 終了日時, フェリー会社CD, フェリー会社名, 乗場CD, 乗場名, 便, 降場CD, 降場名, 精算区分, 精算区分名, 標準料金, 契約料金, 航送車種区分, 航送車種区分名, 見なし距離, ferry_srch) VALUES
+('2024011501', '2024-01-15', '2024-01-15', 1, '東京事業所', 101, 'トラック1号', 1001, '山田太郎', 1, '2024-01-15 08:00:00', '2024-01-15 10:00:00', 1, '東京フェリー', 1, '東京港', '1便', 2, '大阪港', 1, '現金', 10000, 8000, 1, '大型車', 500, '東京-大阪'),
+('2024011502', '2024-01-15', '2024-01-15', 1, '東京事業所', 102, 'トラック2号', 1002, '佐藤次郎', 1, '2024-01-15 09:30:00', '2024-01-15 11:30:00', 1, '東京フェリー', 1, '東京港', '2便', 2, '大阪港', 1, '現金', 10000, 8000, 1, '大型車', 500, '東京-大阪'),
+('2024011601', '2024-01-16', '2024-01-16', 1, '東京事業所', 101, 'トラック1号', 1001, '山田太郎', 1, '2024-01-16 08:00:00', '2024-01-16 10:00:00', 2, '関西フェリー', 3, '神戸港', '1便', 4, '高松港', 2, 'クレジット', 8000, 7000, 2, '中型車', 300, '神戸-高松');

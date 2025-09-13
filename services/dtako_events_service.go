@@ -73,6 +73,26 @@ func (s *DtakoEventsService) ImportFromProduction(fromDate, toDate, eventType st
 		return nil, fmt.Errorf("invalid to date: %v", err)
 	}
 
+	// Validate date range
+	if from.After(to) {
+		return nil, fmt.Errorf("from_date cannot be after to_date")
+	}
+
+	// Validate event type if specified
+	validEventTypes := []string{"START", "STOP", "END", "運転", "休憩", "作業"}
+	if eventType != "" {
+		isValid := false
+		for _, validType := range validEventTypes {
+			if eventType == validType {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			return nil, fmt.Errorf("invalid event_type: %s", eventType)
+		}
+	}
+
 	// Fetch from production
 	events, err := s.repo.FetchFromProduction(from, to, eventType)
 	if err != nil {

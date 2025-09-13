@@ -11,8 +11,8 @@ import (
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
-// T014: Contract test GET /dtako/ferry/{id}
-func TestGetDtakoFerryByID(t *testing.T) {
+// T014: Contract test GET /dtako/ferry_rows/{id}
+func TestGetDtakoFerryRowByID(t *testing.T) {
 	// Setup router
 	r := chi.NewRouter()
 	dtako_mod.RegisterRoutes(r)
@@ -25,40 +25,40 @@ func TestGetDtakoFerryByID(t *testing.T) {
 		validateBody   func(*testing.T, []byte)
 	}{
 		{
-			name:           "Get existing ferry record",
-			id:             "FERRY001",
+			name:           "Get existing ferry row record",
+			id:             "1",
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
-				var record models.DtakoFerry
+				var record models.DtakoFerryRow
 				err := json.Unmarshal(body, &record)
 				if err != nil {
 					t.Errorf("Failed to unmarshal response: %v", err)
 				}
-				if record.ID != "FERRY001" {
-					t.Errorf("Expected ID FERRY001, got %s", record.ID)
+				if record.ID != 1 {
+					t.Errorf("Expected ID 1, got %d", record.ID)
 				}
 				// Validate required fields
-				if record.Route == "" {
-					t.Error("Expected route to be present")
+				if record.UnkoNo == "" {
+					t.Error("Expected unko_no to be present")
 				}
-				if record.VehicleNo == "" {
-					t.Error("Expected vehicle_no to be present")
+				if record.FerryCompanyName == "" {
+					t.Error("Expected ferry_company_name to be present")
 				}
-				if record.DriverCode == "" {
-					t.Error("Expected driver_code to be present")
+				if record.BoardingName == "" {
+					t.Error("Expected boarding_name to be present")
 				}
 				// Validate numeric fields
-				if record.Passengers < 0 {
-					t.Error("Passengers should not be negative")
+				if record.StandardFare < 0 {
+					t.Error("Standard fare should not be negative")
 				}
-				if record.Vehicles < 0 {
-					t.Error("Vehicles should not be negative")
+				if record.ContractFare < 0 {
+					t.Error("Contract fare should not be negative")
 				}
 			},
 		},
 		{
-			name:           "Get non-existent ferry record",
-			id:             "NONEXISTENT",
+			name:           "Get non-existent ferry row record",
+			id:             "999999",
 			expectedStatus: http.StatusNotFound,
 			validateBody:   nil,
 		},
@@ -66,13 +66,13 @@ func TestGetDtakoFerryByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/dtako/ferry/"+tt.id, nil)
+			req := httptest.NewRequest("GET", "/dtako/ferry_rows/"+tt.id, nil)
 			rec := httptest.NewRecorder()
 
 			r.ServeHTTP(rec, req)
 
 			if rec.Code != tt.expectedStatus {
-				t.Errorf("Expected status %d, got %d. Body: %s", 
+				t.Errorf("Expected status %d, got %d. Body: %s",
 					tt.expectedStatus, rec.Code, rec.Body.String())
 			}
 
