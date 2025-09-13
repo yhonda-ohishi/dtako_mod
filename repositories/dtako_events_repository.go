@@ -34,10 +34,12 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		// テスト用英語カラム環境
 		db = r.localDB
 		query = `
-			SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
-			       description, latitude, longitude, created_at, updated_at
+			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
+			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
-			WHERE DATE(event_date) BETWEEN ? AND ?
+			WHERE DATE(開始日時) BETWEEN ? AND ?
 		`
 	} else {
 		// 本番・デフォルト環境（日本語カラム名）
@@ -57,31 +59,17 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 
 	args := []interface{}{from, to}
 
-	isEnglish := os.Getenv("DTAKO_ENV") == "test_english"
-
 	if eventType != "" {
-		if isEnglish {
-			query += " AND event_type = ?"
-		} else {
-			query += " AND イベント名 = ?"
-		}
+		query += " AND イベント名 = ?"
 		args = append(args, eventType)
 	}
 
 	if unkoNo != "" {
-		if isEnglish {
-			query += " AND unko_no = ?"
-		} else {
-			query += " AND 運行NO = ?"
-		}
+		query += " AND 運行NO = ?"
 		args = append(args, unkoNo)
 	}
 
-	if isEnglish {
-		query += " ORDER BY event_date DESC"
-	} else {
-		query += " ORDER BY 開始日時 DESC"
-	}
+	query += " ORDER BY 開始日時 DESC"
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -93,38 +81,26 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 	for rows.Next() {
 		var event models.DtakoEvent
 
-		if isEnglish {
-			// テスト用英語環境: 通常のスキャン
-			err := rows.Scan(
-				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-				&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
-				&event.CreatedAt, &event.UpdatedAt,
-			)
-			if err != nil {
-				return []models.DtakoEvent{}, err
-			}
-		} else {
-			// デフォルト（日本語カラム）: bigint型GPS座標の変換
-			var latBigint, lngBigint sql.NullInt64
+		// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
+		var latBigint, lngBigint sql.NullInt64
 
-			err := rows.Scan(
-				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-				&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-				&event.CreatedAt, &event.UpdatedAt,
-			)
-			if err != nil {
-				return []models.DtakoEvent{}, err
-			}
+		err := rows.Scan(
+			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
+			&event.DriverCode, &event.Description, &latBigint, &lngBigint,
+			&event.CreatedAt, &event.UpdatedAt,
+		)
+		if err != nil {
+			return []models.DtakoEvent{}, err
+		}
 
-			// 緯度経度の型変換（bigint → float64）
-			if latBigint.Valid {
-				lat := float64(latBigint.Int64) / 1000000.0
-				event.Latitude = &lat
-			}
-			if lngBigint.Valid {
-				lng := float64(lngBigint.Int64) / 1000000.0
-				event.Longitude = &lng
-			}
+		// 緯度経度の型変換（bigint → float64）
+		if latBigint.Valid {
+			lat := float64(latBigint.Int64) / 1000000.0
+			event.Latitude = &lat
+		}
+		if lngBigint.Valid {
+			lng := float64(lngBigint.Int64) / 1000000.0
+			event.Longitude = &lng
 		}
 
 		results = append(results, event)
@@ -144,8 +120,10 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 		// テスト用英語カラム環境
 		db = r.localDB
 		query = `
-			SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
-			       description, latitude, longitude, created_at, updated_at
+			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
+			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
 			WHERE id = ?
 		`
@@ -167,40 +145,27 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 
 	var event models.DtakoEvent
 
-	if isEnglish {
-		// テスト用英語環境: 通常のスキャン
-		err := db.QueryRow(query, id).Scan(
-			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-			&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
-			&event.CreatedAt, &event.UpdatedAt,
-		)
+	// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
+	var latBigint, lngBigint sql.NullInt64
 
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// デフォルト（日本語カラム）: bigint型GPS座標の変換
-		var latBigint, lngBigint sql.NullInt64
+	err := db.QueryRow(query, id).Scan(
+		&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
+		&event.DriverCode, &event.Description, &latBigint, &lngBigint,
+		&event.CreatedAt, &event.UpdatedAt,
+	)
 
-		err := db.QueryRow(query, id).Scan(
-			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-			&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-			&event.CreatedAt, &event.UpdatedAt,
-		)
+	if err != nil {
+		return nil, err
+	}
 
-		if err != nil {
-			return nil, err
-		}
-
-		// 緯度経度の型変換（bigint → float64）
-		if latBigint.Valid {
-			lat := float64(latBigint.Int64) / 1000000.0
-			event.Latitude = &lat
-		}
-		if lngBigint.Valid {
-			lng := float64(lngBigint.Int64) / 1000000.0
-			event.Longitude = &lng
-		}
+	// 緯度経度の型変換（bigint → float64）
+	if latBigint.Valid {
+		lat := float64(latBigint.Int64) / 1000000.0
+		event.Latitude = &lat
+	}
+	if lngBigint.Valid {
+		lng := float64(lngBigint.Int64) / 1000000.0
+		event.Longitude = &lng
 	}
 
 	return &event, nil
@@ -222,20 +187,22 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 
 	if isEnglish {
 		// テスト用英語カラム環境
-		eventTypeColumn = "event_type"
-		dateColumn = "event_date"
+		eventTypeColumn = "イベント名"
+		dateColumn = "開始日時"
 		query = `
-			SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
-			       description, latitude, longitude, created_at, updated_at
+			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
+			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
-			WHERE event_date BETWEEN ? AND ?
+			WHERE DATE(開始日時) BETWEEN ? AND ?
 		`
 	} else {
 		// デフォルト（日本語カラム名）
 		eventTypeColumn = "イベント名"
 		dateColumn = "開始日時"
 		query = `
-			SELECT id, COALESCE(運行NO, '') as unko_no, 開始日時 as event_date, イベント名 as event_type,
+			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
 			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
 			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
 			       NULL as created_at, NULL as updated_at
@@ -263,37 +230,24 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		var event models.DtakoEvent
 		var latBigint, lngBigint sql.NullInt64
 
-		// 環境によってカラムの型が異なる
-		if isEnglish {
-			// テスト用英語環境：文字列型とdecimal型
-			err := rows.Scan(
-				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-				&event.DriverCode, &event.Description, &event.Latitude, &event.Longitude,
-				&event.CreatedAt, &event.UpdatedAt,
-			)
-			if err != nil {
-				return []models.DtakoEvent{}, err
-			}
-		} else {
-			// デフォルト（日本語）：CASTで文字列に変換済み、緯度経度はbigint型
-			err := rows.Scan(
-				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-				&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-				&event.CreatedAt, &event.UpdatedAt,
-			)
-			if err != nil {
-				return []models.DtakoEvent{}, err
-			}
+		// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
+		err := rows.Scan(
+			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
+			&event.DriverCode, &event.Description, &latBigint, &lngBigint,
+			&event.CreatedAt, &event.UpdatedAt,
+		)
+		if err != nil {
+			return []models.DtakoEvent{}, err
+		}
 
-			// 緯度経度の型変換（bigint → float64）
-			if latBigint.Valid {
-				lat := float64(latBigint.Int64) / 1000000.0
-				event.Latitude = &lat
-			}
-			if lngBigint.Valid {
-				lng := float64(lngBigint.Int64) / 1000000.0
-				event.Longitude = &lng
-			}
+		// 緯度経度の型変換（bigint → float64）
+		if latBigint.Valid {
+			lat := float64(latBigint.Int64) / 1000000.0
+			event.Latitude = &lat
+		}
+		if lngBigint.Valid {
+			lng := float64(lngBigint.Int64) / 1000000.0
+			event.Longitude = &lng
 		}
 
 		results = append(results, event)
