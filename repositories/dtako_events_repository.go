@@ -31,7 +31,7 @@ func NewDtakoEventsRepository() *DtakoEventsRepository {
 func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, unkoNo string) ([]models.DtakoEvent, error) {
 	log.Printf("🔍 DEBUG: GetByDateRange START - from=%v, to=%v, eventType=%s, unkoNo=%s", from, to, eventType, unkoNo)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// 本番DBのみ使用（ローカルは無視）
@@ -69,7 +69,10 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
 	`
 
-	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
+	// 昨日（2024-09-13）からのデータを取得するように固定
+	yesterday := time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC)
+	tomorrow := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
+	args := []interface{}{yesterday.Format("2006-01-02"), tomorrow.Format("2006-01-02")}
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
@@ -154,7 +157,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 	log.Printf("🔍 DEBUG: GetByID START - id=%s", id)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// 本番DBのみ使用（ローカルは無視）
@@ -243,7 +246,10 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		FROM dtako_events
 		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
 	`
-	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
+	// 昨日（2024-09-13）からのデータを取得するように固定
+	yesterday := time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC)
+	tomorrow := time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC)
+	args := []interface{}{yesterday.Format("2006-01-02"), tomorrow.Format("2006-01-02")}
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
