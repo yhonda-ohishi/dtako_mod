@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -33,9 +34,10 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	// 本番DBのみ使用（ローカルは無視）
 	var db *sql.DB = r.prodDB
 	if db == nil {
-		db = r.localDB
+		return []models.DtakoEvent{}, fmt.Errorf("production database not available")
 	}
 
 	// 最初にテーブル存在確認
@@ -155,9 +157,10 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	// 本番DBのみ使用（ローカルは無視）
 	var db *sql.DB = r.prodDB
 	if db == nil {
-		db = r.localDB
+		return nil, fmt.Errorf("production database not available")
 	}
 
 	// 根本修正: created_at, updated_at を除外したクエリ
