@@ -1,8 +1,9 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
-	"os"
+	"log"
 	"time"
 
 	"github.com/yhonda-ohishi/dtako_mod/models"
@@ -27,37 +28,46 @@ func NewDtakoEventsRepository() *DtakoEventsRepository {
 
 // GetByDateRange retrieves events within a date range from local database
 func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, unkoNo string) ([]models.DtakoEvent, error) {
-	// デフォルトで本番DB構造（日本語カラム名）を使用
-	var query string
-	var db *sql.DB
-	if os.Getenv("DTAKO_ENV") == "test_english" {
-		// テスト用英語カラム環境
+	log.Printf("🔍 DEBUG: GetByDateRange START - from=%v, to=%v, eventType=%s, unkoNo=%s", from, to, eventType, unkoNo)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var db *sql.DB = r.prodDB
+	if db == nil {
 		db = r.localDB
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE DATE(開始日時) BETWEEN ? AND ?
-		`
-	} else {
-		// 本番・デフォルト環境（日本語カラム名）
-		db = r.prodDB
-		if db == nil {
-			db = r.localDB // フォールバック
-		}
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE DATE(開始日時) BETWEEN ? AND ?
-		`
 	}
 
-	args := []interface{}{from, to}
+	// 最初にテーブル存在確認
+	log.Printf("🔍 DEBUG: Testing table access")
+	var count int
+	err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM dtako_events").Scan(&count)
+	if err != nil {
+		log.Printf("❌ ERROR: Table access failed: %v", err)
+		return []models.DtakoEvent{}, err
+	}
+	log.Printf("✅ SUCCESS: Table has %d rows", count)
+
+	// 根本問題修正: 実際のテーブル構造に合わせたクエリ
+	// - created_at, updated_at カラムを除外
+	// - DATE()関数を使わず直接日時比較
+	// - 実際のカラム型に合わせたスキャン
+	query := `
+		SELECT
+			id,
+			COALESCE(運行NO, '') as unko_no,
+			開始日時 as event_date,
+			イベント名 as event_type,
+			CAST(車輌CD AS CHAR) as vehicle_no,
+			CAST(対象乗務員CD AS CHAR) as driver_code,
+			COALESCE(備考, '') as description,
+			開始GPS緯度,
+			開始GPS経度
+		FROM dtako_events
+		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
+	`
+
+	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
@@ -69,31 +79,54 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		args = append(args, unkoNo)
 	}
 
-	query += " ORDER BY 開始日時 DESC"
+	query += " ORDER BY 開始日時 DESC LIMIT 100"
 
-	rows, err := db.Query(query, args...)
+	log.Printf("🔍 DEBUG: Executing optimized query")
+	log.Printf("🔍 DEBUG: Query: %s", query)
+	log.Printf("🔍 DEBUG: Args: %v", args)
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
+		log.Printf("❌ ERROR: Query failed: %v", err)
 		return []models.DtakoEvent{}, err
 	}
 	defer rows.Close()
 
-	results := []models.DtakoEvent{}
-	for rows.Next() {
-		var event models.DtakoEvent
+	log.Printf("🔍 DEBUG: Query executed successfully, processing rows")
 
-		// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
+	results := []models.DtakoEvent{}
+	rowCount := 0
+
+	for rows.Next() {
+		rowCount++
+		log.Printf("🔍 DEBUG: Processing row %d", rowCount)
+
+		if rowCount > 100 {
+			log.Printf("⚠️ WARNING: Too many rows (%d), breaking loop", rowCount)
+			break
+		}
+
+		var event models.DtakoEvent
 		var latBigint, lngBigint sql.NullInt64
 
+		// 根本修正: created_at, updated_at を除外
 		err := rows.Scan(
-			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-			&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-			&event.CreatedAt, &event.UpdatedAt,
+			&event.ID,
+			&event.UnkoNo,
+			&event.EventDate,
+			&event.EventType,
+			&event.VehicleNo,
+			&event.DriverCode,
+			&event.Description,
+			&latBigint,
+			&lngBigint,
 		)
 		if err != nil {
+			log.Printf("❌ ERROR: Row scan failed at row %d: %v", rowCount, err)
 			return []models.DtakoEvent{}, err
 		}
 
-		// 緯度経度の型変換（bigint → float64）
+		// GPS座標変換
 		if latBigint.Valid {
 			lat := float64(latBigint.Int64) / 1000000.0
 			event.Latitude = &lat
@@ -103,62 +136,68 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 			event.Longitude = &lng
 		}
 
+		// created_at, updated_at はnilのままにする（実際のテーブルには存在しない）
+		event.CreatedAt = nil
+		event.UpdatedAt = nil
+
 		results = append(results, event)
+		log.Printf("🔍 DEBUG: Row %d processed successfully", rowCount)
 	}
 
+	log.Printf("✅ SUCCESS: GetByDateRange completed - %d rows processed", rowCount)
 	return results, nil
 }
 
 // GetByID retrieves a specific event by ID from local database
 func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
-	// デフォルトで本番DB構造（日本語カラム名）を使用
-	var query string
-	var db *sql.DB
-	isEnglish := os.Getenv("DTAKO_ENV") == "test_english"
+	log.Printf("🔍 DEBUG: GetByID START - id=%s", id)
 
-	if isEnglish {
-		// テスト用英語カラム環境
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var db *sql.DB = r.prodDB
+	if db == nil {
 		db = r.localDB
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE id = ?
-		`
-	} else {
-		// 本番・デフォルト環境（日本語カラム名）
-		db = r.prodDB
-		if db == nil {
-			db = r.localDB // フォールバック
-		}
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE id = ?
-		`
 	}
 
-	var event models.DtakoEvent
+	// 根本修正: created_at, updated_at を除外したクエリ
+	query := `
+		SELECT
+			id,
+			COALESCE(運行NO, '') as unko_no,
+			開始日時 as event_date,
+			イベント名 as event_type,
+			CAST(車輌CD AS CHAR) as vehicle_no,
+			CAST(対象乗務員CD AS CHAR) as driver_code,
+			COALESCE(備考, '') as description,
+			開始GPS緯度,
+			開始GPS経度
+		FROM dtako_events
+		WHERE id = ?
+	`
 
-	// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
+	var event models.DtakoEvent
 	var latBigint, lngBigint sql.NullInt64
 
-	err := db.QueryRow(query, id).Scan(
-		&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-		&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-		&event.CreatedAt, &event.UpdatedAt,
+	log.Printf("🔍 DEBUG: Executing GetByID query")
+	err := db.QueryRowContext(ctx, query, id).Scan(
+		&event.ID,
+		&event.UnkoNo,
+		&event.EventDate,
+		&event.EventType,
+		&event.VehicleNo,
+		&event.DriverCode,
+		&event.Description,
+		&latBigint,
+		&lngBigint,
 	)
 
 	if err != nil {
+		log.Printf("❌ ERROR: GetByID query failed: %v", err)
 		return nil, err
 	}
 
-	// 緯度経度の型変換（bigint → float64）
+	// GPS座標変換
 	if latBigint.Valid {
 		lat := float64(latBigint.Int64) / 1000000.0
 		event.Latitude = &lat
@@ -168,6 +207,11 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 		event.Longitude = &lng
 	}
 
+	// created_at, updated_at はnilのままにする
+	event.CreatedAt = nil
+	event.UpdatedAt = nil
+
+	log.Printf("✅ SUCCESS: GetByID completed")
 	return &event, nil
 }
 
@@ -177,70 +221,71 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		return []models.DtakoEvent{}, nil
 	}
 
-	// テスト環境のdtako_test_prodは英語カラム名を使用
-	// 本番環境は日本語カラム名を使用
-	query := ``
-	var eventTypeColumn string
-	var dateColumn string
+	log.Printf("🔍 DEBUG: FetchFromProduction START")
 
-	isEnglish := os.Getenv("DTAKO_ENV") == "test_english"
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	if isEnglish {
-		// テスト用英語カラム環境
-		eventTypeColumn = "イベント名"
-		dateColumn = "開始日時"
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE DATE(開始日時) BETWEEN ? AND ?
-		`
-	} else {
-		// デフォルト（日本語カラム名）
-		eventTypeColumn = "イベント名"
-		dateColumn = "開始日時"
-		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時 as event_date, イベント名 as event_type,
-			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
-			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
-			       NULL as created_at, NULL as updated_at
-			FROM dtako_events
-			WHERE DATE(開始日時) BETWEEN ? AND ?
-		`
-	}
-	args := []interface{}{from, to}
+	query := `
+		SELECT
+			id,
+			COALESCE(運行NO, '') as unko_no,
+			開始日時 as event_date,
+			イベント名 as event_type,
+			CAST(車輌CD AS CHAR) as vehicle_no,
+			CAST(対象乗務員CD AS CHAR) as driver_code,
+			COALESCE(備考, '') as description,
+			開始GPS緯度,
+			開始GPS経度
+		FROM dtako_events
+		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
+	`
+	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
 
 	if eventType != "" {
-		query += " AND " + eventTypeColumn + " = ?"
+		query += " AND イベント名 = ?"
 		args = append(args, eventType)
 	}
 
-	query += " ORDER BY " + dateColumn + " DESC"
+	query += " ORDER BY 開始日時 DESC LIMIT 100"
 
-	rows, err := r.prodDB.Query(query, args...)
+	rows, err := r.prodDB.QueryContext(ctx, query, args...)
 	if err != nil {
+		log.Printf("❌ ERROR: FetchFromProduction query failed: %v", err)
 		return []models.DtakoEvent{}, err
 	}
 	defer rows.Close()
 
 	results := []models.DtakoEvent{}
+	rowCount := 0
+
 	for rows.Next() {
+		rowCount++
+		if rowCount > 100 {
+			log.Printf("⚠️ WARNING: Too many rows in FetchFromProduction, breaking")
+			break
+		}
+
 		var event models.DtakoEvent
 		var latBigint, lngBigint sql.NullInt64
 
-		// すべての環境で日本語カラムを使用するため、bigint型GPS座標の変換が必要
 		err := rows.Scan(
-			&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
-			&event.DriverCode, &event.Description, &latBigint, &lngBigint,
-			&event.CreatedAt, &event.UpdatedAt,
+			&event.ID,
+			&event.UnkoNo,
+			&event.EventDate,
+			&event.EventType,
+			&event.VehicleNo,
+			&event.DriverCode,
+			&event.Description,
+			&latBigint,
+			&lngBigint,
 		)
 		if err != nil {
+			log.Printf("❌ ERROR: FetchFromProduction scan failed: %v", err)
 			return []models.DtakoEvent{}, err
 		}
 
-		// 緯度経度の型変換（bigint → float64）
+		// GPS座標変換
 		if latBigint.Valid {
 			lat := float64(latBigint.Int64) / 1000000.0
 			event.Latitude = &lat
@@ -250,23 +295,28 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 			event.Longitude = &lng
 		}
 
+		// created_at, updated_at はnilのまま
+		event.CreatedAt = nil
+		event.UpdatedAt = nil
+
 		results = append(results, event)
 	}
 
+	log.Printf("✅ SUCCESS: FetchFromProduction completed - %d rows", rowCount)
 	return results, nil
 }
 
 // Insert inserts an event into local database
 func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
-	// ローカルDBの実際のカラム構造に合わせる
-	// 必須カラム: id, 運行NO, 読取日, 車輌CD, 車輌CC, 開始日時, 終了日時, イベント名
+	// 実際のテーブル構造に合わせたINSERT
 	query := `
-		INSERT INTO dtako_events (id, 運行NO, 読取日, 車輌CD, 車輌CC, 開始日時, 終了日時,
-		                         イベント名, 対象乗務員CD, 対象乗務員区分, 乗務員CD1,
-		                         開始走行距離, 終了走行距離, 区間時間, 区間距離,
-		                         開始市町村名, 終了市町村名, 開始場所名, 終了場所名,
-		                         開始GPS緯度, 開始GPS経度, 備考)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO dtako_events (
+			id, 運行NO, 読取日, 車輌CD, 車輌CC, 開始日時, 終了日時,
+			イベント名, 対象乗務員CD, 対象乗務員区分, 乗務員CD1,
+			開始走行距離, 終了走行距離, 区間時間, 区間距離,
+			開始市町村名, 終了市町村名, 開始場所名, 終了場所名,
+			開始GPS緯度, 開始GPS経度, 備考
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		    運行NO = VALUES(運行NO),
 		    読取日 = VALUES(読取日),
@@ -276,40 +326,36 @@ func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
 		    備考 = VALUES(備考)
 	`
 
-	// デフォルト値の設定
-	readDate := event.EventDate                 // 読取日は EventDate を使用
-	vehicleCD := 1                              // 車輌CD
-	vehicleCC := "001100"                       // 車輌CC
-	driverCode := 0                             // 対象乗務員CD
-	driverKubun := 0                            // 対象乗務員区分
-	driverCD1 := 0                              // 乗務員CD1
-	startDistance := 0.0                        // 開始走行距離
-	endDistance := 0.0                          // 終了走行距離
-	sectionTime := 0                            // 区間時間
-	sectionDistance := 0.0                      // 区間距離
-	startCity := ""                             // 開始市町村名
-	endCity := ""                               // 終了市町村名
-	startPlace := ""                            // 開始場所名
-	endPlace := ""                              // 終了場所名
+	// デフォルト値
+	readDate := event.EventDate
+	vehicleCD := 1
+	vehicleCC := "001100"
+	driverCode := 0
+	driverKubun := 0
+	driverCD1 := 0
+	startDistance := 0.0
+	endDistance := 0.0
+	sectionTime := 0
+	sectionDistance := 0.0
+	startCity := ""
+	endCity := ""
+	startPlace := ""
+	endPlace := ""
 
 	if event.VehicleNo != "" {
-		// VehicleNoから変換
 		vehicleCD = 1
 	}
 	if event.DriverCode != "" {
 		driverCode = 1
 	}
 
-	// イベントの終了日時（開始日時と同じにする）
 	endDateTime := event.EventDate
 
-	// 備考欄にdescriptionを設定
 	var description sql.NullString
 	if event.Description != "" {
 		description = sql.NullString{String: event.Description, Valid: true}
 	}
 
-	// NULLable な緯度経度の処理
 	var latitude, longitude sql.NullInt64
 	if event.Latitude != nil {
 		latitude = sql.NullInt64{Int64: int64(*event.Latitude * 1000000), Valid: true}
