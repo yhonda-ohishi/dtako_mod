@@ -41,17 +41,17 @@ type DtakoRow struct {
 
 // DtakoEvent represents an event record from production
 type DtakoEvent struct {
-	ID          string    `json:"id" example:"event-456"`
-	UnkoNo      string    `json:"unko_no,omitempty" example:"2025010101"`      // 運行NO - links to DtakoRow
-	EventDate   time.Time `json:"event_date" example:"2025-01-13T10:30:00Z"`
-	EventType   string    `json:"event_type" example:"運転"`
-	VehicleNo   string    `json:"vehicle_no" example:"vehicle-001"`
-	DriverCode  string    `json:"driver_code" example:"driver-123"`
-	Description string    `json:"description" example:"Started driving from depot"`
-	Latitude    float64   `json:"latitude,omitempty" example:"35.6762"`
-	Longitude   float64   `json:"longitude,omitempty" example:"139.6503"`
-	CreatedAt   time.Time `json:"created_at" example:"2025-01-13T15:04:05Z"`
-	UpdatedAt   time.Time `json:"updated_at" example:"2025-01-13T15:04:05Z"`
+	ID          string     `json:"id" example:"event-456"`
+	UnkoNo      string     `json:"unko_no,omitempty" example:"2025010101"`      // 運行NO - links to DtakoRow
+	EventDate   time.Time  `json:"event_date" example:"2025-01-13T10:30:00Z"`
+	EventType   string     `json:"event_type" example:"運転"`
+	VehicleNo   string     `json:"vehicle_no" example:"vehicle-001"`
+	DriverCode  string     `json:"driver_code" example:"driver-123"`
+	Description string     `json:"description" example:"Started driving from depot"`
+	Latitude    *float64   `json:"latitude,omitempty" example:"35.6762"`
+	Longitude   *float64   `json:"longitude,omitempty" example:"139.6503"`
+	CreatedAt   *time.Time `json:"created_at,omitempty" example:"2025-01-13T15:04:05Z"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty" example:"2025-01-13T15:04:05Z"`
 }
 
 // DtakoFerryRow represents a ferry row record from production

@@ -40,7 +40,7 @@ func TestFilterEventsScenario(t *testing.T) {
 		r.ServeHTTP(rec, req)
 		
 		if rec.Code != http.StatusOK {
-			t.Fatalf("Query all events failed with status %d", rec.Code)
+			t.Fatalf("Query all events failed with status %d: %s", rec.Code, rec.Body.String())
 		}
 		
 		var allEvents []models.DtakoEvent
