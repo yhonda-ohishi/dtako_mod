@@ -3,7 +3,7 @@ package docs
 
 import "github.com/swaggo/swag"
 
-const docTemplatedtako = `{
+const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
@@ -755,20 +755,20 @@ const docTemplatedtako = `{
     }
 }`
 
-// SwaggerInfodtako holds exported Swagger Info so clients can modify it
-var SwaggerInfodtako = &swag.Spec{
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
 	Host:             "localhost:8080",
 	BasePath:         "/dtako",
 	Schemes:          []string{},
 	Title:            "DTako API",
 	Description:      "Digital tachograph data management API for vehicle operation records",
-	InfoInstanceName: "dtako",
-	SwaggerTemplate:  docTemplatedtako,
+	InfoInstanceName: "swagger",
+	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
 
 func init() {
-	swag.Register(SwaggerInfodtako.InstanceName(), SwaggerInfodtako)
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

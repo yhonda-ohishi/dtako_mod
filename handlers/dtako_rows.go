@@ -1,3 +1,10 @@
+// Package handlers provides API handlers for DTako module
+//
+//	@title			DTako API
+//	@version		1.0.0
+//	@description	Digital tachograph data management API for vehicle operation records
+//	@BasePath		/dtako
+//	@host			localhost:8080
 package handlers
 
 import (
