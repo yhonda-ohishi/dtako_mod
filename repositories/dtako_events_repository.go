@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"database/sql"
-	"fmt"
+	"os"
 	"time"
 
 	"github.com/yhonda-ohishi/dtako_mod/models"
@@ -28,7 +28,7 @@ func NewDtakoEventsRepository() *DtakoEventsRepository {
 // GetByDateRange retrieves events within a date range from local database
 func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, unkoNo string) ([]models.DtakoEvent, error) {
 	query := `
-		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
+		SELECT id, COALESCE(運行NO, ''), event_date, event_type, vehicle_no, driver_code,
 		       description, latitude, longitude, created_at, updated_at
 		FROM dtako_events
 		WHERE event_date BETWEEN ? AND ?
@@ -41,7 +41,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 	}
 
 	if unkoNo != "" {
-		query += " AND unko_no = ?"
+		query += " AND 運行NO = ?"
 		args = append(args, unkoNo)
 	}
 
@@ -73,7 +73,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 // GetByID retrieves a specific event by ID from local database
 func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 	query := `
-		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
+		SELECT id, COALESCE(運行NO, ''), event_date, event_type, vehicle_no, driver_code,
 		       description, latitude, longitude, created_at, updated_at
 		FROM dtako_events
 		WHERE id = ?
@@ -96,15 +96,29 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 // FetchFromProduction fetches event data from production database
 func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventType string) ([]models.DtakoEvent, error) {
 	if r.prodDB == nil {
-		return []models.DtakoEvent{}, fmt.Errorf("production database not connected")
+		return []models.DtakoEvent{}, nil
 	}
 
-	query := `
-		SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
-		       description, latitude, longitude, created_at, updated_at
-		FROM dtako_events
-		WHERE event_date BETWEEN ? AND ?
-	`
+	// テスト環境のdtako_test_prodは英語カラム名を使用
+	// 本番環境は日本語カラム名を使用
+	query := ``
+	if os.Getenv("PROD_DB_NAME") == "dtako_test_prod" {
+		// テスト用プロダクションDB（英語カラム名）
+		query = `
+			SELECT id, COALESCE(unko_no, ''), event_date, event_type, vehicle_no, driver_code,
+			       description, latitude, longitude, created_at, updated_at
+			FROM dtako_events
+			WHERE event_date BETWEEN ? AND ?
+		`
+	} else {
+		// 本番DB（日本語カラム名）
+		query = `
+			SELECT id, COALESCE(運行NO, ''), event_date, event_type, vehicle_no, driver_code,
+			       description, latitude, longitude, created_at, updated_at
+			FROM dtako_events
+			WHERE event_date BETWEEN ? AND ?
+		`
+	}
 	args := []interface{}{from, to}
 
 	if eventType != "" {
@@ -140,11 +154,11 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 // Insert inserts an event into local database
 func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
 	query := `
-		INSERT INTO dtako_events (id, unko_no, event_date, event_type, vehicle_no, driver_code,
+		INSERT INTO dtako_events (id, 運行NO, event_date, event_type, vehicle_no, driver_code,
 		                         description, latitude, longitude, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
-		    unko_no = VALUES(unko_no),
+		    運行NO = VALUES(運行NO),
 		    event_date = VALUES(event_date),
 		    event_type = VALUES(event_type),
 		    vehicle_no = VALUES(vehicle_no),

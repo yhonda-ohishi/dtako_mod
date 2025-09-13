@@ -10,9 +10,12 @@ import (
 )
 
 var (
-	db    *sql.DB
-	once  sync.Once
-	dbErr error
+	db      *sql.DB
+	prodDB  *sql.DB
+	once    sync.Once
+	onceProd sync.Once
+	dbErr   error
+	prodErr error
 )
 
 // GetDB returns a singleton database connection
@@ -32,9 +35,32 @@ func GetLocalDB() (*sql.DB, error) {
 	return GetDB()
 }
 
-// GetProductionDB returns the production database connection (uses same as local for now)
+// GetProductionDB returns the production database connection
 func GetProductionDB() (*sql.DB, error) {
-	return GetDB()
+	onceProd.Do(func() {
+		// Production database configuration from PROD_DB_* env vars
+		cfg := &config.DatabaseConfig{
+			Host:     getEnvWithDefault("PROD_DB_HOST", "localhost"),
+			Port:     getEnvWithDefault("PROD_DB_PORT", "3306"),
+			User:     getEnvWithDefault("PROD_DB_USER", "root"),
+			Password: getEnvWithDefault("PROD_DB_PASSWORD", ""),
+			Database: getEnvWithDefault("PROD_DB_NAME", "dtako_test_prod"),
+			Charset:  getEnvWithDefault("PROD_DB_CHARSET", "utf8mb4"),
+		}
+		prodDB, prodErr = cfg.Connect()
+		if prodErr != nil {
+			log.Printf("Failed to connect to production database: %v", prodErr)
+		}
+	})
+	return prodDB, prodErr
+}
+
+// getEnvWithDefault gets environment variable with default value
+func getEnvWithDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
 
 // SetDatabaseConfig allows external configuration (optional)

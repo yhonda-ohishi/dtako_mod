@@ -27,16 +27,16 @@ type ErrorResponse struct {
 
 // DtakoRow represents a row record from production
 type DtakoRow struct {
-	ID          string    `json:"id" example:"row-123"`
-	UnkoNo      string    `json:"unko_no" example:"2025010101"`      // 運行NO
-	Date        time.Time `json:"date" example:"2025-01-13T00:00:00Z"`
-	VehicleNo   string    `json:"vehicle_no" example:"vehicle-001"`
-	DriverCode  string    `json:"driver_code" example:"driver-123"`
-	RouteCode   string    `json:"route_code" example:"route-A"`
-	Distance    float64   `json:"distance" example:"123.45"`
-	FuelAmount  float64   `json:"fuel_amount" example:"45.67"`
-	CreatedAt   time.Time `json:"created_at" example:"2025-01-13T15:04:05Z"`
-	UpdatedAt   time.Time `json:"updated_at" example:"2025-01-13T15:04:05Z"`
+	ID          string     `json:"id" example:"row-123"`
+	UnkoNo      string     `json:"unko_no" example:"2025010101"`      // 運行NO
+	Date        time.Time  `json:"date" example:"2025-01-13T00:00:00Z"`
+	VehicleNo   string     `json:"vehicle_no" example:"vehicle-001"`
+	DriverCode  string     `json:"driver_code" example:"driver-123"`
+	RouteCode   string     `json:"route_code" example:"route-A"`
+	Distance    float64    `json:"distance" example:"123.45"`
+	FuelAmount  float64    `json:"fuel_amount" example:"45.67"`
+	CreatedAt   *time.Time `json:"created_at,omitempty" example:"2025-01-13T15:04:05Z"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty" example:"2025-01-13T15:04:05Z"`
 }
 
 // DtakoEvent represents an event record from production

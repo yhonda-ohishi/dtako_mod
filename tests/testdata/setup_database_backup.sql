@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS dtako_rows (
 -- dtako_events テーブル
 CREATE TABLE IF NOT EXISTS dtako_events (
     id VARCHAR(50) PRIMARY KEY,
-    運行NO VARCHAR(23),
+    unko_no VARCHAR(255),
     event_date DATETIME NOT NULL,
     event_type VARCHAR(50) NOT NULL,
     vehicle_no VARCHAR(20),
@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS dtako_events (
     INDEX idx_event_date (event_date),
     INDEX idx_event_type (event_type),
     INDEX idx_vehicle (vehicle_no),
-    INDEX idx_運行NO (運行NO),
-    FOREIGN KEY (運行NO) REFERENCES dtako_rows(運行NO) ON DELETE CASCADE
+    INDEX idx_unko_no (unko_no),
+    FOREIGN KEY (unko_no) REFERENCES dtako_rows(unko_no) ON DELETE CASCADE
 );
 
 -- dtako_ferry_rows テーブル
@@ -116,32 +116,13 @@ CREATE TABLE IF NOT EXISTS dtako_ferry_rows (
 
 -- テストデータの投入（既存データがある場合は置き換え）
 -- dtako_rows のテストデータ
--- 最小限の必須カラムでテストデータを追加
-REPLACE INTO dtako_rows (
-    id, 運行NO, 読取日, 運行日, 車輌CD, 車輌CC,
-    対象乗務員区分, 対象乗務員CD,
-    出社日時, 退社日時, 出庫日時, 帰庫日時,
-    出庫メーター, 帰庫メーター, 総走行距離,
-    行先市町村名, 自社主燃料
-) VALUES
-('ROW001', '2024011501', '2024-01-15', '2024-01-15', 1, '001100',
- 0, 1,
- '2024-01-15 08:00:00', '2024-01-15 17:00:00', '2024-01-15 08:30:00', '2024-01-15 16:30:00',
- 1000, 1150.5, 150.5,
- '東京都', 20.3),
-('ROW002', '2024011502', '2024-01-15', '2024-01-15', 2, '002200',
- 0, 2,
- '2024-01-15 08:00:00', '2024-01-15 17:00:00', '2024-01-15 08:30:00', '2024-01-15 16:30:00',
- 2000, 2200.8, 200.8,
- '大阪府', 25.7),
-('ROW003', '2024011601', '2024-01-16', '2024-01-16', 1, '001100',
- 0, 1,
- '2024-01-16 08:00:00', '2024-01-16 17:00:00', '2024-01-16 08:30:00', '2024-01-16 16:30:00',
- 1150.5, 1325.7, 175.2,
- '名古屋市', 22.1);
+REPLACE INTO dtako_rows (id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名, 総走行距離, 自社主燃料) VALUES
+('ROW001', '2024011501', '2024-01-15', 1, 1, '東京都', 150.5, 20.3),
+('ROW002', '2024011502', '2024-01-15', 2, 2, '大阪府', 200.8, 25.7),
+('ROW003', '2024011601', '2024-01-16', 1, 1, '名古屋市', 175.2, 22.1);
 
 -- dtako_events のテストデータ
-REPLACE INTO dtako_events (id, 運行NO, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
+REPLACE INTO dtako_events (id, unko_no, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
 ('EVENT001', '2024011501', '2024-01-15 08:30:00', 'START', 'V001', 'D001', 'Trip started', 35.6762, 139.6503),
 ('EVENT002', '2024011501', '2024-01-15 12:15:00', 'STOP', 'V001', 'D001', 'Lunch break', 35.6895, 139.6917),
 ('EVENT003', '2024011501', '2024-01-15 16:45:00', 'END', 'V001', 'D001', 'Trip ended', 35.6762, 139.6503);
@@ -212,7 +193,7 @@ CREATE TABLE IF NOT EXISTS dtako_rows (
 -- dtako_events テーブル
 CREATE TABLE IF NOT EXISTS dtako_events (
     id VARCHAR(50) PRIMARY KEY,
-    運行NO VARCHAR(23),
+    unko_no VARCHAR(255),
     event_date DATETIME NOT NULL,
     event_type VARCHAR(50) NOT NULL,
     vehicle_no VARCHAR(20),
@@ -225,8 +206,8 @@ CREATE TABLE IF NOT EXISTS dtako_events (
     INDEX idx_event_date (event_date),
     INDEX idx_event_type (event_type),
     INDEX idx_vehicle (vehicle_no),
-    INDEX idx_運行NO (運行NO),
-    FOREIGN KEY (運行NO) REFERENCES dtako_rows(運行NO) ON DELETE CASCADE
+    INDEX idx_unko_no (unko_no),
+    FOREIGN KEY (unko_no) REFERENCES dtako_rows(unko_no) ON DELETE CASCADE
 );
 
 -- dtako_ferry_rows テーブル
@@ -266,32 +247,13 @@ CREATE TABLE IF NOT EXISTS dtako_ferry_rows (
 
 -- テストデータの投入（既存データがある場合は置き換え）
 -- dtako_rows のテストデータ
--- 最小限の必須カラムでテストデータを追加
-REPLACE INTO dtako_rows (
-    id, 運行NO, 読取日, 運行日, 車輌CD, 車輌CC,
-    対象乗務員区分, 対象乗務員CD,
-    出社日時, 退社日時, 出庫日時, 帰庫日時,
-    出庫メーター, 帰庫メーター, 総走行距離,
-    行先市町村名, 自社主燃料
-) VALUES
-('ROW001', '2024011501', '2024-01-15', '2024-01-15', 1, '001100',
- 0, 1,
- '2024-01-15 08:00:00', '2024-01-15 17:00:00', '2024-01-15 08:30:00', '2024-01-15 16:30:00',
- 1000, 1150.5, 150.5,
- '東京都', 20.3),
-('ROW002', '2024011502', '2024-01-15', '2024-01-15', 2, '002200',
- 0, 2,
- '2024-01-15 08:00:00', '2024-01-15 17:00:00', '2024-01-15 08:30:00', '2024-01-15 16:30:00',
- 2000, 2200.8, 200.8,
- '大阪府', 25.7),
-('ROW003', '2024011601', '2024-01-16', '2024-01-16', 1, '001100',
- 0, 1,
- '2024-01-16 08:00:00', '2024-01-16 17:00:00', '2024-01-16 08:30:00', '2024-01-16 16:30:00',
- 1150.5, 1325.7, 175.2,
- '名古屋市', 22.1);
+REPLACE INTO dtako_rows (id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名, 総走行距離, 自社主燃料) VALUES
+('ROW001', '2024011501', '2024-01-15', 1, 1, '東京都', 150.5, 20.3),
+('ROW002', '2024011502', '2024-01-15', 2, 2, '大阪府', 200.8, 25.7),
+('ROW003', '2024011601', '2024-01-16', 1, 1, '名古屋市', 175.2, 22.1);
 
 -- dtako_events のテストデータ
-REPLACE INTO dtako_events (id, 運行NO, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
+REPLACE INTO dtako_events (id, unko_no, event_date, event_type, vehicle_no, driver_code, description, latitude, longitude) VALUES
 ('EVENT001', '2024011501', '2024-01-15 08:30:00', 'START', 'V001', 'D001', 'Trip started', 35.6762, 139.6503),
 ('EVENT002', '2024011501', '2024-01-15 12:15:00', 'STOP', 'V001', 'D001', 'Lunch break', 35.6895, 139.6917),
 ('EVENT003', '2024011501', '2024-01-15 16:45:00', 'END', 'V001', 'D001', 'Trip ended', 35.6762, 139.6503);
