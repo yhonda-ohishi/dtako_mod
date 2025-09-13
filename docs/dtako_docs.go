@@ -15,7 +15,7 @@ const docTemplatedtako = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/dtako/events": {
+        "/events": {
             "get": {
                 "description": "Get event data with location information and optional filtering",
                 "consumes": [
@@ -79,7 +79,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/events/import": {
+        "/events/import": {
             "post": {
                 "description": "Import event data from production database",
                 "consumes": [
@@ -125,7 +125,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/events/{id}": {
+        "/events/{id}": {
             "get": {
                 "description": "Get specific event data by ID",
                 "consumes": [
@@ -163,7 +163,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/ferry_rows": {
+        "/ferry_rows": {
             "get": {
                 "description": "Retrieve ferry row records with optional date range and ferry company filter",
                 "consumes": [
@@ -221,7 +221,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/ferry_rows/import": {
+        "/ferry_rows/import": {
             "post": {
                 "description": "Import ferry row records from production database for a date range",
                 "consumes": [
@@ -267,7 +267,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/ferry_rows/{id}": {
+        "/ferry_rows/{id}": {
             "get": {
                 "description": "Retrieve a specific ferry row record by its ID",
                 "consumes": [
@@ -311,7 +311,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/rows": {
+        "/rows": {
             "get": {
                 "description": "Get vehicle operation data with optional date filtering",
                 "consumes": [
@@ -363,7 +363,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/rows/import": {
+        "/rows/import": {
             "post": {
                 "description": "Import vehicle operation data from production database",
                 "consumes": [
@@ -409,7 +409,7 @@ const docTemplatedtako = `{
                 }
             }
         },
-        "/dtako/rows/{id}": {
+        "/rows/{id}": {
             "get": {
                 "description": "Get specific vehicle operation data by ID",
                 "consumes": [

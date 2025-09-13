@@ -35,7 +35,7 @@ func NewDtakoEventsHandler() *DtakoEventsHandler {
 // @Success      200      {array}   models.DtakoEvent  "List of dtako events"
 // @Failure      400      {object}  models.ErrorResponse  "Invalid request parameters"
 // @Failure      500      {object}  models.ErrorResponse  "Internal Server Error"
-// @Router       /dtako/events [get]
+// @Router       /events [get]
 func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
 	from := r.URL.Query().Get("from")
@@ -63,7 +63,7 @@ func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Success      200     {object}  models.ImportResult  "Import successful"
 // @Failure      400     {object}  models.ErrorResponse  "Bad Request"
 // @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
-// @Router       /dtako/events/import [post]
+// @Router       /events/import [post]
 func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 	var req models.ImportRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -98,7 +98,7 @@ func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 // @Param        id      path      string  true  "Event ID"
 // @Success      200     {object}  models.DtakoEvent  "Dtako event found"
 // @Failure      404     {object}  models.ErrorResponse  "Not Found"
-// @Router       /dtako/events/{id} [get]
+// @Router       /events/{id} [get]
 func (h *DtakoEventsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	

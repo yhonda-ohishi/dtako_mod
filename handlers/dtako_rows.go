@@ -33,7 +33,7 @@ func NewDtakoRowsHandler() *DtakoRowsHandler {
 // @Success      200     {array}   models.DtakoRow  "List of dtako rows"
 // @Failure      400     {object}  models.ErrorResponse  "Invalid request parameters"
 // @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
-// @Router       /dtako/rows [get]
+// @Router       /rows [get]
 func (h *DtakoRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
 	from := r.URL.Query().Get("from")
@@ -59,7 +59,7 @@ func (h *DtakoRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Success      200     {object}  models.ImportResult  "Import successful"
 // @Failure      400     {object}  models.ErrorResponse  "Bad Request"
 // @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
-// @Router       /dtako/rows/import [post]
+// @Router       /rows/import [post]
 func (h *DtakoRowsHandler) Import(w http.ResponseWriter, r *http.Request) {
 	var req models.ImportRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -94,7 +94,7 @@ func (h *DtakoRowsHandler) Import(w http.ResponseWriter, r *http.Request) {
 // @Param        id      path      string  true  "Row ID"
 // @Success      200     {object}  models.DtakoRow  "Dtako row found"
 // @Failure      404     {object}  models.ErrorResponse  "Not Found"
-// @Router       /dtako/rows/{id} [get]
+// @Router       /rows/{id} [get]
 func (h *DtakoRowsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	

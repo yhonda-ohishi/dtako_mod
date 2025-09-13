@@ -7,16 +7,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/yhonda-ohishi/dtako_mod"
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
 // T010: Contract test POST /dtako/events/import
 func TestPostDtakoEventsImport(t *testing.T) {
 	// Setup router
-	r := chi.NewRouter()
-	dtako_mod.RegisterRoutes(r)
+	r := SetupTestRouter()
+	
 
 	// Test cases
 	tests := []struct {

@@ -25,7 +25,7 @@ func NewDtakoFerryRowsHandler() *DtakoFerryRowsHandler {
 	}
 }
 
-// List handles GET /dtako/ferry_rows
+// List handles GET /ferry_rows
 // @Summary      List ferry row records
 // @Description  Retrieve ferry row records with optional date range and ferry company filter
 // @Tags         ferry_rows
@@ -37,7 +37,7 @@ func NewDtakoFerryRowsHandler() *DtakoFerryRowsHandler {
 // @Success      200           {array}   models.DtakoFerryRow
 // @Failure      400           {object}  models.ErrorResponse
 // @Failure      500           {object}  models.ErrorResponse
-// @Router       /dtako/ferry_rows [get]
+// @Router       /ferry_rows [get]
 func (h *DtakoFerryRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
@@ -53,7 +53,7 @@ func (h *DtakoFerryRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(records)
 }
 
-// GetByID handles GET /dtako/ferry_rows/{id}
+// GetByID handles GET /ferry_rows/{id}
 // @Summary      Get ferry row record by ID
 // @Description  Retrieve a specific ferry row record by its ID
 // @Tags         ferry_rows
@@ -63,7 +63,7 @@ func (h *DtakoFerryRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object}  models.DtakoFerryRow
 // @Failure      404  {object}  models.ErrorResponse
 // @Failure      500  {object}  models.ErrorResponse
-// @Router       /dtako/ferry_rows/{id} [get]
+// @Router       /ferry_rows/{id} [get]
 func (h *DtakoFerryRowsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -85,7 +85,7 @@ func (h *DtakoFerryRowsHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(record)
 }
 
-// Import handles POST /dtako/ferry_rows/import
+// Import handles POST /ferry_rows/import
 // @Summary      Import ferry row records from production
 // @Description  Import ferry row records from production database for a date range
 // @Tags         ferry_rows
@@ -95,7 +95,7 @@ func (h *DtakoFerryRowsHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 // @Success      200      {object}  models.ImportResult
 // @Failure      400      {object}  models.ErrorResponse
 // @Failure      500      {object}  models.ErrorResponse
-// @Router       /dtako/ferry_rows/import [post]
+// @Router       /ferry_rows/import [post]
 func (h *DtakoFerryRowsHandler) Import(w http.ResponseWriter, r *http.Request) {
 	var req models.ImportRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

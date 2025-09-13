@@ -6,16 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/yhonda-ohishi/dtako_mod"
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
 // T016: Contract test GET /dtako/ferry_rows
 func TestGetDtakoFerryRows(t *testing.T) {
 	// Setup router
-	r := chi.NewRouter()
-	dtako_mod.RegisterRoutes(r)
+	r := SetupTestRouter()
+	
 
 	// Test cases
 	tests := []struct {

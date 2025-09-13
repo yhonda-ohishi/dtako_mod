@@ -237,7 +237,7 @@ info:
   title: DTako API
   version: 1.0.0
 paths:
-  /dtako/events:
+  /events:
     get:
       consumes:
       - application/json
@@ -279,7 +279,7 @@ paths:
       summary: List Dtako Events
       tags:
       - dtako
-  /dtako/events/{id}:
+  /events/{id}:
     get:
       consumes:
       - application/json
@@ -304,7 +304,7 @@ paths:
       summary: Get Dtako Event by ID
       tags:
       - dtako
-  /dtako/events/import:
+  /events/import:
     post:
       consumes:
       - application/json
@@ -334,7 +334,7 @@ paths:
       summary: Import Dtako Events
       tags:
       - dtako
-  /dtako/ferry_rows:
+  /ferry_rows:
     get:
       consumes:
       - application/json
@@ -373,7 +373,7 @@ paths:
       summary: List ferry row records
       tags:
       - ferry_rows
-  /dtako/ferry_rows/{id}:
+  /ferry_rows/{id}:
     get:
       consumes:
       - application/json
@@ -402,7 +402,7 @@ paths:
       summary: Get ferry row record by ID
       tags:
       - ferry_rows
-  /dtako/ferry_rows/import:
+  /ferry_rows/import:
     post:
       consumes:
       - application/json
@@ -432,7 +432,7 @@ paths:
       summary: Import ferry row records from production
       tags:
       - ferry_rows
-  /dtako/rows:
+  /rows:
     get:
       consumes:
       - application/json
@@ -466,7 +466,7 @@ paths:
       summary: List Dtako Rows
       tags:
       - dtako
-  /dtako/rows/{id}:
+  /rows/{id}:
     get:
       consumes:
       - application/json
@@ -491,7 +491,7 @@ paths:
       summary: Get Dtako Row by ID
       tags:
       - dtako
-  /dtako/rows/import:
+  /rows/import:
     post:
       consumes:
       - application/json
