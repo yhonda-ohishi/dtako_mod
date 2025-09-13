@@ -122,8 +122,10 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 		eventTypeColumn = "イベント名"
 		dateColumn = "開始日時"
 		query = `
-			SELECT id, COALESCE(運行NO, ''), 開始日時, イベント名, 車輌CD, 対象乗務員CD,
-			       COALESCE(備考, ''), 開始GPS緯度, 開始GPS経度, NULL as created_at, NULL as updated_at
+			SELECT id, COALESCE(運行NO, '') as unko_no, 開始日時 as event_date, イベント名 as event_type,
+			       CAST(車輌CD AS CHAR) as vehicle_no, CAST(対象乗務員CD AS CHAR) as driver_code,
+			       COALESCE(備考, '') as description, 開始GPS緯度 as latitude, 開始GPS経度 as longitude,
+			       NULL as created_at, NULL as updated_at
 			FROM dtako_events
 			WHERE DATE(開始日時) BETWEEN ? AND ?
 		`
@@ -146,7 +148,6 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 	results := []models.DtakoEvent{}
 	for rows.Next() {
 		var event models.DtakoEvent
-		var vehicleCD, driverCD sql.NullInt64
 		var latBigint, lngBigint sql.NullInt64
 
 		// 環境によってカラムの型が異なる
@@ -161,23 +162,17 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 				return []models.DtakoEvent{}, err
 			}
 		} else {
-			// 本番環境：整数型とbigint型
+			// 本番環境：CASTで文字列に変換済み、緯度経度はbigint型
 			err := rows.Scan(
-				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &vehicleCD,
-				&driverCD, &event.Description, &latBigint, &lngBigint,
+				&event.ID, &event.UnkoNo, &event.EventDate, &event.EventType, &event.VehicleNo,
+				&event.DriverCode, &event.Description, &latBigint, &lngBigint,
 				&event.CreatedAt, &event.UpdatedAt,
 			)
 			if err != nil {
 				return []models.DtakoEvent{}, err
 			}
 
-			// 型変換
-			if vehicleCD.Valid {
-				event.VehicleNo = fmt.Sprintf("%d", vehicleCD.Int64)
-			}
-			if driverCD.Valid {
-				event.DriverCode = fmt.Sprintf("%d", driverCD.Int64)
-			}
+			// 緯度経度の型変換（bigint → float64）
 			if latBigint.Valid {
 				lat := float64(latBigint.Int64) / 1000000.0
 				event.Latitude = &lat
