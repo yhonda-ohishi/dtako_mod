@@ -8,16 +8,13 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/yhonda-ohishi/dtako_mod"
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
 // T018: Integration test - Handle production DB failure gracefully
 func TestProductionDBFailure(t *testing.T) {
 	// Setup
-	r := chi.NewRouter()
-	dtako_mod.RegisterRoutes(r)
+	r := SetupTestRouter()
 
 	t.Run("Handle production database unavailable", func(t *testing.T) {
 		// Save original env vars
@@ -62,7 +59,7 @@ func TestProductionDBFailure(t *testing.T) {
 		// Test other endpoints also handle DB failure
 		endpoints := []string{
 			"/dtako/events/import",
-			"/dtako/ferry/import",
+			"/dtako/ferry_rows/import",
 		}
 		
 		for _, endpoint := range endpoints {

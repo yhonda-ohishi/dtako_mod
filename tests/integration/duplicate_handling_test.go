@@ -7,16 +7,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/yhonda-ohishi/dtako_mod"
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
 // T019: Integration test - Prevent duplicate imports (UPSERT)
 func TestDuplicateHandling(t *testing.T) {
 	// Setup
-	r := chi.NewRouter()
-	dtako_mod.RegisterRoutes(r)
+	r := SetupTestRouter()
 
 	t.Run("UPSERT prevents duplicates on re-import", func(t *testing.T) {
 		dateRange := models.ImportRequest{
@@ -167,7 +164,7 @@ func TestDuplicateHandling(t *testing.T) {
 		
 		for i := 0; i < 3; i++ {
 			go func(id int) {
-				req := httptest.NewRequest("POST", "/dtako/ferry/import", bytes.NewReader(bodyBytes))
+				req := httptest.NewRequest("POST", "/dtako/ferry_rows/import", bytes.NewReader(bodyBytes))
 				req.Header.Set("Content-Type", "application/json")
 				rec := httptest.NewRecorder()
 				
@@ -186,19 +183,19 @@ func TestDuplicateHandling(t *testing.T) {
 		}
 		
 		// Query final data
-		req := httptest.NewRequest("GET", "/dtako/ferry?from=2025-01-25&to=2025-01-25", nil)
+		req := httptest.NewRequest("GET", "/dtako/ferry_rows?from=2025-01-25&to=2025-01-25", nil)
 		rec := httptest.NewRecorder()
 		
 		r.ServeHTTP(rec, req)
 		
-		var finalRecords []models.DtakoFerry
+		var finalRecords []models.DtakoFerryRow
 		json.Unmarshal(rec.Body.Bytes(), &finalRecords)
 		
 		// Check for duplicate IDs
-		idSet := make(map[string]bool)
+		idSet := make(map[int]bool)
 		for _, record := range finalRecords {
 			if idSet[record.ID] {
-				t.Errorf("Duplicate ID found: %s", record.ID)
+				t.Errorf("Duplicate ID found: %d", record.ID)
 			}
 			idSet[record.ID] = true
 		}

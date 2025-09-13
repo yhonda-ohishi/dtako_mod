@@ -8,16 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/yhonda-ohishi/dtako_mod"
 	"github.com/yhonda-ohishi/dtako_mod/models"
 )
 
 // T015: Integration test - Import dtako_rows with date range
 func TestImportRowsScenario(t *testing.T) {
 	// Setup
-	r := chi.NewRouter()
-	dtako_mod.RegisterRoutes(r)
+	r := SetupTestRouter()
 
 	t.Run("Complete import workflow", func(t *testing.T) {
 		// Step 1: Import data for a specific date range
