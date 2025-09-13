@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/yhonda-ohishi/dtako_mod/models"
-	"github.com/yhonda-ohishi/dtako_mod/repositories"
 	"github.com/yhonda-ohishi/dtako_mod/services"
 )
 
@@ -17,9 +16,6 @@ type DtakoFerryRowsHandler struct {
 
 // NewDtakoFerryRowsHandler creates a new ferry rows handler
 func NewDtakoFerryRowsHandler() *DtakoFerryRowsHandler {
-	// Initialize database connections
-	repositories.InitDatabases()
-
 	return &DtakoFerryRowsHandler{
 		service: services.NewDtakoFerryRowsService(),
 	}

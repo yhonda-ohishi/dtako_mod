@@ -1,50 +1,68 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# DTako Module Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Environment Variables Management
+- **絶対にテストフォルダやサブディレクトリに`.env`ファイルをコピーしない**
+- 環境変数の設定は必ずプロジェクトルートの`.env`ファイルから読み込む
+- テストはプロジェクトルートから実行するか、適切な環境変数を設定して実行する
+- セキュリティと保守性のため、設定は一元管理する
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Database Connection Pattern
+- godotenv/autoloadを使用した自動的な環境変数読み込み
+- DB_* 環境変数を優先し、LOCAL_DB_* にフォールバック
+- シングルトン接続パターンで接続を管理
+- 接続エラーは適切にログに記録
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Route Prefix Management
+- DTako moduleのルートは親ルーターがマウントポイントを制御
+- RegisterRoutes関数内では`/dtako`プレフィックスを付けない
+- テストではヘルパー関数で`/dtako`にマウント
+- 二重プレフィックス問題を防ぐ
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Japanese Database Compatibility
+- dtako_ferry_rowsテーブルの日本語カラム名に対応
+- TIME型フィールドは文字列として取得後パース
+- NULLフィールドは適切にハンドリング
+- 文字エンコーディングはutf8mb4を使用
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Testing Strategy
+- 契約テストで外部APIとの互換性を保証
+- テストデータベースは本番と同じスキーマを使用
+- REPLACE INTOでべき等なテストデータ挿入
+- 各テストは独立して実行可能
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Security Requirements
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### Database Credentials
+- パスワードを環境変数で管理
+- .envファイルは.gitignoreに追加
+- .env.exampleで設定例を提供
+- コマンドラインでパスワードを直接指定しない
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### API Security
+- 入力値の検証とサニタイゼーション
+- SQLインジェクション対策としてプリペアドステートメント使用
+- エラーメッセージに機密情報を含めない
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+
+### Commit Messages
+- 日本語でのコミットメッセージを使用可能
+- 変更内容を明確に記述
+- プレフィックス（fix:, feat:, refactor:など）を使用
+
+### Code Style
+- Go標準のフォーマッティングを遵守
+- エラーハンドリングは明示的に
+- 不要なコメントは追加しない
+- 既存のコードスタイルに従う
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- この憲法はすべての開発慣行に優先する
+- 変更には文書化と承認が必要
+- IMPORTANT_RULES.mdで追加ルールを管理
+- 違反は即座に修正する
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-09-13 | **Last Amended**: 2025-09-13
