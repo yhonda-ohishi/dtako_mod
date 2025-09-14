@@ -35,8 +35,10 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	}
 
 	// 本番DBは日本語カラム名
-	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
-	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
+	// 正しく日付の終わりにセット (Add ではなく、その日の23:59:59にする)
+	year, month, day := to.Date()
+	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, to.Location())
 
 	query := `
 		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
@@ -105,8 +107,9 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 		return []models.DtakoRow{}, nil
 	}
 
-	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
-	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
+	year, month, day := to.Date()
+	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, to.Location())
 
 	// テスト環境のdtako_test_prodは英語カラム名を使用
 	// 本番環境は日本語カラム名を使用
