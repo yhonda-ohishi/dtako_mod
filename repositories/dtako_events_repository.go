@@ -144,6 +144,122 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 	return results, nil
 }
 
+// GetByDateRangeWithLimit retrieves events within a date range with limit
+func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, eventType, unkoNo string, limit int) ([]models.DtakoEvent, error) {
+	log.Printf("🔍 DEBUG: GetByDateRangeWithLimit START - from=%v, to=%v, eventType=%s, unkoNo=%s, limit=%d", from, to, eventType, unkoNo, limit)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return []models.DtakoEvent{}, fmt.Errorf("production database not available")
+	}
+
+	// テーブル存在確認（高速化のためCOUNT(*)は使わない）
+	log.Printf("🔍 DEBUG: Checking table access")
+
+	// 根本問題修正: 実際のテーブル構造に合わせたクエリ
+	query := `
+		SELECT
+			id,
+			COALESCE(運行NO, '') as unko_no,
+			開始日時 as event_date,
+			イベント名 as event_type,
+			CAST(車輌CD AS CHAR) as vehicle_no,
+			CAST(対象乗務員CD AS CHAR) as driver_code,
+			COALESCE(備考, '') as description,
+			開始GPS緯度,
+			開始GPS経度
+		FROM dtako_events
+		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
+	`
+
+	// パラメータで指定された日付範囲を使用
+	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
+
+	if eventType != "" {
+		query += " AND イベント名 = ?"
+		args = append(args, eventType)
+	}
+
+	if unkoNo != "" {
+		query += " AND 運行NO = ?"
+		args = append(args, unkoNo)
+	}
+
+	// 動的LIMIT設定
+	query += fmt.Sprintf(" ORDER BY 開始日時 DESC LIMIT %d", limit)
+
+	log.Printf("🔍 DEBUG: Executing optimized query with limit=%d", limit)
+	log.Printf("🔍 DEBUG: Query: %s", query)
+	log.Printf("🔍 DEBUG: Args: %v", args)
+
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Printf("❌ ERROR: Query failed: %v", err)
+		return []models.DtakoEvent{}, err
+	}
+	defer rows.Close()
+
+	log.Printf("🔍 DEBUG: Query executed successfully, processing rows")
+
+	results := []models.DtakoEvent{}
+	rowCount := 0
+
+	for rows.Next() {
+		rowCount++
+		log.Printf("🔍 DEBUG: Processing row %d", rowCount)
+
+		// 安全装置: limitを超えないようにする
+		if rowCount > limit {
+			log.Printf("⚠️ WARNING: Too many rows (%d), breaking loop", rowCount)
+			break
+		}
+
+		var event models.DtakoEvent
+		var latBigint, lngBigint sql.NullInt64
+
+		// 根本修正: created_at, updated_at を除外
+		err := rows.Scan(
+			&event.ID,
+			&event.UnkoNo,
+			&event.EventDate,
+			&event.EventType,
+			&event.VehicleNo,
+			&event.DriverCode,
+			&event.Description,
+			&latBigint,
+			&lngBigint,
+		)
+		if err != nil {
+			log.Printf("❌ ERROR: Row scan failed at row %d: %v", rowCount, err)
+			return []models.DtakoEvent{}, err
+		}
+
+		// GPS座標変換
+		if latBigint.Valid {
+			lat := float64(latBigint.Int64) / 1000000.0
+			event.Latitude = &lat
+		}
+		if lngBigint.Valid {
+			lng := float64(lngBigint.Int64) / 1000000.0
+			event.Longitude = &lng
+		}
+
+		// created_at, updated_at はnilのままにする（実際のテーブルには存在しない）
+		event.CreatedAt = nil
+		event.UpdatedAt = nil
+
+		results = append(results, event)
+		log.Printf("🔍 DEBUG: Row %d processed successfully", rowCount)
+	}
+
+	log.Printf("✅ SUCCESS: GetByDateRangeWithLimit completed - %d rows processed", rowCount)
+	return results, nil
+}
+
 // GetByID retrieves a specific event by ID from local database
 func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 	log.Printf("🔍 DEBUG: GetByID START - id=%s", id)

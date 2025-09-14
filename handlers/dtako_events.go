@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -32,6 +33,7 @@ func NewDtakoEventsHandler() *DtakoEventsHandler {
 // @Param        to       query     string  false  "End date (YYYY-MM-DD)"
 // @Param        type     query     string  false  "Event type filter"
 // @Param        unko_no  query     string  false  "Filter by 運行NO (links to dtako_rows)"
+// @Param        limit    query     int     false  "Maximum number of records to return (default: 100, max: 1000)"
 // @Success      200      {array}   models.DtakoEvent  "List of dtako events"
 // @Failure      400      {object}  models.ErrorResponse  "Invalid request parameters"
 // @Failure      500      {object}  models.ErrorResponse  "Internal Server Error"
@@ -43,7 +45,20 @@ func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 	eventType := r.URL.Query().Get("type")
 	unkoNo := r.URL.Query().Get("unko_no")
 
-	events, err := h.service.GetEvents(from, to, eventType, unkoNo)
+	// Get limit parameter with default value
+	limitStr := r.URL.Query().Get("limit")
+	limit := 100 // デフォルト値
+
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			// 最大値制限
+			if l > 0 && l <= 1000 {
+				limit = l
+			}
+		}
+	}
+
+	events, err := h.service.GetEventsWithLimit(from, to, eventType, unkoNo, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -101,7 +116,7 @@ func (h *DtakoEventsHandler) Import(w http.ResponseWriter, r *http.Request) {
 // @Router       /events/{id} [get]
 func (h *DtakoEventsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	
+
 	event, err := h.service.GetEventByID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

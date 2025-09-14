@@ -125,3 +125,29 @@ func (s *DtakoEventsService) ImportFromProduction(fromDate, toDate, eventType st
 
 	return result, nil
 }
+// GetEventsWithLimit retrieves events within date range with limit
+func (s *DtakoEventsService) GetEventsWithLimit(from, to, eventType, unkoNo string, limit int) ([]models.DtakoEvent, error) {
+	// Parse dates if provided
+	var fromDate, toDate time.Time
+	var err error
+
+	if from != "" {
+		fromDate, err = time.Parse("2006-01-02", from)
+		if err != nil {
+			return nil, fmt.Errorf("invalid from date: %v", err)
+		}
+	} else {
+		fromDate = time.Now().AddDate(0, -1, 0)
+	}
+
+	if to != "" {
+		toDate, err = time.Parse("2006-01-02", to)
+		if err != nil {
+			return nil, fmt.Errorf("invalid to date: %v", err)
+		}
+	} else {
+		toDate = time.Now()
+	}
+
+	return s.repo.GetByDateRangeWithLimit(fromDate, toDate, eventType, unkoNo, limit)
+}
