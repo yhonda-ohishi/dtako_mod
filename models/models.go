@@ -32,6 +32,7 @@ type DtakoRow struct {
 	Date        time.Time  `json:"date" example:"2025-01-13T00:00:00Z"`
 	ReadDate    *time.Time `json:"read_date" example:"2025-01-13T00:00:00Z"`
 	VehicleNo   string     `json:"vehicle_no" example:"vehicle-001"`
+	VehicleCC   string     `json:"vehicle_cc" example:"001100"`  // 車輌CC
 	DriverCode  string     `json:"driver_code" example:"driver-123"`
 	RouteCode   string     `json:"route_code" example:"route-A"`
 	Distance    float64    `json:"distance" example:"123.45"`

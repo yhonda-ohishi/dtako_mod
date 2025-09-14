@@ -47,7 +47,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
 
 	query := `
-		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 対象乗務員CD, 行先市町村名,
+		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 車輌CC, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
 		FROM dtako_rows
 		WHERE 運行日 BETWEEN ? AND ?
@@ -65,7 +65,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	for rows.Next() {
 		var row models.DtakoRow
 		err := rows.Scan(
-			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.DriverCode,
+			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.VehicleCC, &row.DriverCode,
 			&row.RouteCode, &row.Distance, &row.FuelAmount,
 			&row.CreatedAt, &row.UpdatedAt,
 		)
@@ -99,7 +99,7 @@ func (r *DtakoRowsRepository) GetByDateRangeWithFilters(from, to, readDate time.
 
 	// 基本クエリ
 	query := `
-		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 対象乗務員CD, 行先市町村名,
+		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 車輌CC, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
 		FROM dtako_rows
 		WHERE 運行日 BETWEEN ? AND ?
@@ -140,7 +140,7 @@ func (r *DtakoRowsRepository) GetByDateRangeWithFilters(from, to, readDate time.
 	for rows.Next() {
 		var row models.DtakoRow
 		err := rows.Scan(
-			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.DriverCode,
+			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.VehicleCC, &row.DriverCode,
 			&row.RouteCode, &row.Distance, &row.FuelAmount,
 			&row.CreatedAt, &row.UpdatedAt,
 		)
@@ -162,7 +162,7 @@ func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 	}
 
 	query := `
-		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 対象乗務員CD, 行先市町村名,
+		SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 車輌CC, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
 		FROM dtako_rows
 		WHERE id = ?
@@ -170,7 +170,7 @@ func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 
 	var row models.DtakoRow
 	err := db.QueryRow(query, id).Scan(
-		&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.DriverCode,
+		&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.VehicleCC, &row.DriverCode,
 		&row.RouteCode, &row.Distance, &row.FuelAmount,
 		&row.CreatedAt, &row.UpdatedAt,
 	)
@@ -206,7 +206,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 	if os.Getenv("PROD_DB_NAME") == "dtako_test_prod" {
 		// テスト用プロダクションDB（英語カラム名）
 		query = `
-			SELECT id, unko_no, date, read_date, vehicle_no, driver_code, route_code,
+			SELECT id, unko_no, date, read_date, vehicle_no, vehicle_cc, driver_code, route_code,
 			       distance, fuel_amount, created_at, updated_at
 			FROM dtako_rows
 			WHERE date BETWEEN ? AND ?
@@ -215,7 +215,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 	} else {
 		// 本番DB（日本語カラム名）
 		query = `
-			SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 対象乗務員CD, 行先市町村名,
+			SELECT id, 運行NO, 運行日, 読取日, 車輌CD, 車輌CC, 対象乗務員CD, 行先市町村名,
 			       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
 			FROM dtako_rows
 			WHERE 運行日 BETWEEN ? AND ?
@@ -233,7 +233,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 	for rows.Next() {
 		var row models.DtakoRow
 		err := rows.Scan(
-			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.DriverCode,
+			&row.ID, &row.UnkoNo, &row.Date, &row.ReadDate, &row.VehicleNo, &row.VehicleCC, &row.DriverCode,
 			&row.RouteCode, &row.Distance, &row.FuelAmount,
 			&row.CreatedAt, &row.UpdatedAt,
 		)
