@@ -320,7 +320,7 @@ const docTemplate = `{
         },
         "/rows": {
             "get": {
-                "description": "Get vehicle operation data with optional date filtering",
+                "description": "Get vehicle operation data with optional date and vehicle filtering",
                 "consumes": [
                     "application/json"
                 ],
@@ -342,6 +342,24 @@ const docTemplate = `{
                         "type": "string",
                         "description": "End date (YYYY-MM-DD)",
                         "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Read date (YYYY-MM-DD)",
+                        "name": "read_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Vehicle CC filter",
+                        "name": "vehicle_cc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Vehicle CD filter",
+                        "name": "vehicle_cd",
                         "in": "query"
                     }
                 ],

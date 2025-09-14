@@ -78,6 +78,81 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	return results, nil
 }
 
+// GetByDateRangeWithFilters retrieves rows within a date range with additional filters
+func (r *DtakoRowsRepository) GetByDateRangeWithFilters(from, to, readDate time.Time, vehicleCC, vehicleCD string, hasReadDate bool) ([]models.DtakoRow, error) {
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return []models.DtakoRow{}, fmt.Errorf("production database not available")
+	}
+
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
+	// fromもJSTの00:00:00に設定
+	yearFrom, monthFrom, dayFrom := from.Date()
+	fromStart := time.Date(yearFrom, monthFrom, dayFrom, 0, 0, 0, 0, jst)
+
+	// toはJSTの23:59:59に設定
+	yearTo, monthTo, dayTo := to.Date()
+	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
+
+	// 基本クエリ
+	query := `
+		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
+		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
+		FROM dtako_rows
+		WHERE 運行日 BETWEEN ? AND ?
+	`
+	args := []interface{}{fromStart, toEndOfDay}
+
+	// 読取日フィルター
+	if hasReadDate {
+		yearRead, monthRead, dayRead := readDate.Date()
+		readStart := time.Date(yearRead, monthRead, dayRead, 0, 0, 0, 0, jst)
+		readEnd := time.Date(yearRead, monthRead, dayRead, 23, 59, 59, 999999999, jst)
+
+		query += " AND 読取日 BETWEEN ? AND ?"
+		args = append(args, readStart, readEnd)
+	}
+
+	// 車輌CCフィルター
+	if vehicleCC != "" {
+		query += " AND 車輌CC = ?"
+		args = append(args, vehicleCC)
+	}
+
+	// 車輌CDフィルター
+	if vehicleCD != "" {
+		query += " AND 車輌CD = ?"
+		args = append(args, vehicleCD)
+	}
+
+	query += " ORDER BY 運行日 DESC LIMIT 100"
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return []models.DtakoRow{}, err
+	}
+	defer rows.Close()
+
+	results := []models.DtakoRow{}
+	for rows.Next() {
+		var row models.DtakoRow
+		err := rows.Scan(
+			&row.ID, &row.UnkoNo, &row.Date, &row.VehicleNo, &row.DriverCode,
+			&row.RouteCode, &row.Distance, &row.FuelAmount,
+			&row.CreatedAt, &row.UpdatedAt,
+		)
+		if err != nil {
+			return []models.DtakoRow{}, err
+		}
+		results = append(results, row)
+	}
+
+	return results, nil
+}
+
 // GetByID retrieves a specific row by ID from production database
 func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 	// 本番DBのみ使用（ローカルは無視）

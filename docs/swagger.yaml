@@ -441,7 +441,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get vehicle operation data with optional date filtering
+      description: Get vehicle operation data with optional date and vehicle filtering
       parameters:
       - description: Start date (YYYY-MM-DD)
         in: query
@@ -450,6 +450,18 @@ paths:
       - description: End date (YYYY-MM-DD)
         in: query
         name: to
+        type: string
+      - description: Read date (YYYY-MM-DD)
+        in: query
+        name: read_date
+        type: string
+      - description: Vehicle CC filter
+        in: query
+        name: vehicle_cc
+        type: string
+      - description: Vehicle CD filter
+        in: query
+        name: vehicle_cd
         type: string
       produces:
       - application/json

@@ -31,12 +31,15 @@ func NewDtakoRowsHandler() *DtakoRowsHandler {
 
 // List lists dtako rows
 // @Summary      List Dtako Rows
-// @Description  Get vehicle operation data with optional date filtering
+// @Description  Get vehicle operation data with optional date and vehicle filtering
 // @Tags         dtako_rows
 // @Accept       json
 // @Produce      json
-// @Param        from    query     string  false  "Start date (YYYY-MM-DD)"
-// @Param        to      query     string  false  "End date (YYYY-MM-DD)"
+// @Param        from         query     string  false  "Start date (YYYY-MM-DD)"
+// @Param        to           query     string  false  "End date (YYYY-MM-DD)"
+// @Param        read_date    query     string  false  "Read date (YYYY-MM-DD)"
+// @Param        vehicle_cc   query     string  false  "Vehicle CC filter"
+// @Param        vehicle_cd   query     string  false  "Vehicle CD filter"
 // @Success      200     {array}   models.DtakoRow  "List of dtako rows"
 // @Failure      400     {object}  models.ErrorResponse  "Invalid request parameters"
 // @Failure      500     {object}  models.ErrorResponse  "Internal Server Error"
@@ -45,8 +48,11 @@ func (h *DtakoRowsHandler) List(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
-	
-	rows, err := h.service.GetRows(from, to)
+	readDate := r.URL.Query().Get("read_date")
+	vehicleCC := r.URL.Query().Get("vehicle_cc")
+	vehicleCD := r.URL.Query().Get("vehicle_cd")
+
+	rows, err := h.service.GetRows(from, to, readDate, vehicleCC, vehicleCD)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

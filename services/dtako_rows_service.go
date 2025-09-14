@@ -21,10 +21,10 @@ func NewDtakoRowsService() *DtakoRowsService {
 	}
 }
 
-// GetRows retrieves rows within date range
-func (s *DtakoRowsService) GetRows(from, to string) ([]models.DtakoRow, error) {
+// GetRows retrieves rows within date range with optional filters
+func (s *DtakoRowsService) GetRows(from, to, readDate, vehicleCC, vehicleCD string) ([]models.DtakoRow, error) {
 	// Parse dates if provided
-	var fromDate, toDate time.Time
+	var fromDate, toDate, readDateTime time.Time
 	var err error
 
 	// JSTタイムゾーンを取得
@@ -50,7 +50,15 @@ func (s *DtakoRowsService) GetRows(from, to string) ([]models.DtakoRow, error) {
 		toDate = time.Now().In(jst)
 	}
 
-	return s.repo.GetByDateRange(fromDate, toDate)
+	// 読取日のパース
+	if readDate != "" {
+		readDateTime, err = time.ParseInLocation("2006-01-02", readDate, jst)
+		if err != nil {
+			return nil, fmt.Errorf("invalid read date: %v", err)
+		}
+	}
+
+	return s.repo.GetByDateRangeWithFilters(fromDate, toDate, readDateTime, vehicleCC, vehicleCD, readDate != "")
 }
 
 // GetRowByID retrieves a specific row by ID
