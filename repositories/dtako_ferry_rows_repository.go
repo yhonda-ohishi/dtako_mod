@@ -45,9 +45,15 @@ func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompa
 		args = append(args, ferryCompany)
 	}
 
-	query += " ORDER BY 運行日 DESC, 開始日時 DESC"
+	query += " ORDER BY 運行日 DESC, 開始日時 DESC LIMIT 100"
 
-	rows, err := r.localDB.Query(query, args...)
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return []models.DtakoFerryRow{}, fmt.Errorf("production database not available")
+	}
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return []models.DtakoFerryRow{}, err
 	}
@@ -75,8 +81,14 @@ func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompa
 	return results, nil
 }
 
-// GetByID retrieves a specific ferry row record by ID from local database
+// GetByID retrieves a specific ferry row record by ID from production database
 func (r *DtakoFerryRowsRepository) GetByID(id string) (*models.DtakoFerryRow, error) {
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return nil, fmt.Errorf("production database not available")
+	}
+
 	query := `
 		SELECT id, 運行NO, 運行日, 読取日, 事業所CD, 事業所名,
 		       車輌CD, 車輌名, 乗務員CD1, 乗務員名１, 対象乗務員区分,
@@ -90,7 +102,7 @@ func (r *DtakoFerryRowsRepository) GetByID(id string) (*models.DtakoFerryRow, er
 	`
 
 	var record models.DtakoFerryRow
-	err := r.localDB.QueryRow(query, id).Scan(
+	err := db.QueryRow(query, id).Scan(
 		&record.ID, &record.UnkoNo, &record.UnkoDate, &record.ReadDate,
 		&record.OfficeCode, &record.OfficeName, &record.VehicleCode, &record.VehicleName,
 		&record.DriverCode1, &record.DriverName1, &record.TargetDriverClass,
