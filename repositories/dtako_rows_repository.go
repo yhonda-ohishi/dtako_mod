@@ -35,6 +35,9 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	}
 
 	// 本番DBは日本語カラム名
+	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
+	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+
 	query := `
 		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
@@ -44,7 +47,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 		LIMIT 100
 	`
 
-	rows, err := db.Query(query, from, to)
+	rows, err := db.Query(query, from, toEndOfDay)
 	if err != nil {
 		return []models.DtakoRow{}, err
 	}
@@ -102,6 +105,9 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 		return []models.DtakoRow{}, nil
 	}
 
+	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
+	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+
 	// テスト環境のdtako_test_prodは英語カラム名を使用
 	// 本番環境は日本語カラム名を使用
 	// PROD_DB_NAMEで判断
@@ -126,7 +132,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 		`
 	}
 
-	rows, err := r.prodDB.Query(query, from, to)
+	rows, err := r.prodDB.Query(query, from, toEndOfDay)
 	if err != nil {
 		return []models.DtakoRow{}, err
 	}

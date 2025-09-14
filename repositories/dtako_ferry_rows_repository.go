@@ -25,8 +25,11 @@ func NewDtakoFerryRowsRepository() *DtakoFerryRowsRepository {
 	}
 }
 
-// GetByDateRange retrieves ferry row records within a date range from local database
+// GetByDateRange retrieves ferry row records within a date range from production database
 func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompany string) ([]models.DtakoFerryRow, error) {
+	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
+	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+
 	query := `
 		SELECT id, 運行NO, 運行日, 読取日, 事業所CD, 事業所名,
 		       車輌CD, 車輌名, 乗務員CD1, 乗務員名１, 対象乗務員区分,
@@ -38,7 +41,7 @@ func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompa
 		FROM dtako_ferry_rows
 		WHERE 運行日 BETWEEN ? AND ?
 	`
-	args := []interface{}{from, to}
+	args := []interface{}{from, toEndOfDay}
 
 	if ferryCompany != "" {
 		query += " AND フェリー会社名 = ?"
@@ -126,6 +129,9 @@ func (r *DtakoFerryRowsRepository) FetchFromProduction(from, to time.Time, ferry
 		return []models.DtakoFerryRow{}, fmt.Errorf("production database not connected")
 	}
 
+	// 日付範囲の調整: toに23:59:59を追加して、その日全体を含める
+	toEndOfDay := to.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+
 	query := `
 		SELECT id, 運行NO, 運行日, 読取日, 事業所CD, 事業所名,
 		       車輌CD, 車輌名, 乗務員CD1, 乗務員名１, 対象乗務員区分,
@@ -137,7 +143,7 @@ func (r *DtakoFerryRowsRepository) FetchFromProduction(from, to time.Time, ferry
 		FROM dtako_ferry_rows
 		WHERE 運行日 BETWEEN ? AND ?
 	`
-	args := []interface{}{from, to}
+	args := []interface{}{from, toEndOfDay}
 
 	if ferryCompany != "" {
 		query += " AND フェリー会社名 = ?"
