@@ -171,6 +171,9 @@ definitions:
       id:
         example: row-123
         type: string
+      read_date:
+        example: "2025-01-13T00:00:00Z"
+        type: string
       route_code:
         example: route-A
         type: string

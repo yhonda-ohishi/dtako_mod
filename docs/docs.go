@@ -695,6 +695,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "row-123"
                 },
+                "read_date": {
+                    "type": "string",
+                    "example": "2025-01-13T00:00:00Z"
+                },
                 "route_code": {
                     "type": "string",
                     "example": "route-A"
