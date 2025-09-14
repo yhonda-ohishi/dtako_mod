@@ -27,18 +27,22 @@ type ErrorResponse struct {
 
 // DtakoRow represents a row record from production
 type DtakoRow struct {
-	ID          string     `json:"id" example:"row-123"`
-	UnkoNo      string     `json:"unko_no" example:"2025010101"`      // 運行NO
-	Date        time.Time  `json:"date" example:"2025-01-13T00:00:00Z"`
-	ReadDate    *time.Time `json:"read_date" example:"2025-01-13T00:00:00Z"`
-	VehicleNo   string     `json:"vehicle_no" example:"vehicle-001"`
-	VehicleCC   string     `json:"vehicle_cc" example:"001100"`  // 車輌CC
-	DriverCode  string     `json:"driver_code" example:"driver-123"`
-	RouteCode   string     `json:"route_code" example:"route-A"`
-	Distance    float64    `json:"distance" example:"123.45"`
-	FuelAmount  float64    `json:"fuel_amount" example:"45.67"`
-	CreatedAt   *time.Time `json:"created_at,omitempty" example:"2025-01-13T15:04:05Z"`
-	UpdatedAt   *time.Time `json:"updated_at,omitempty" example:"2025-01-13T15:04:05Z"`
+	ID             string     `json:"id" example:"row-123"`
+	UnkoNo         string     `json:"unko_no" example:"2025010101"`      // 運行NO
+	Date           time.Time  `json:"date" example:"2025-01-13T00:00:00Z"`
+	ReadDate       *time.Time `json:"read_date" example:"2025-01-13T00:00:00Z"`
+	VehicleNo      string     `json:"vehicle_no" example:"vehicle-001"`
+	VehicleCC      string     `json:"vehicle_cc" example:"001100"`  // 車輌CC
+	DriverCode     string     `json:"driver_code" example:"driver-123"`
+	RouteCode      string     `json:"route_code" example:"route-A"`
+	Distance       float64    `json:"distance" example:"123.45"`
+	FuelAmount     float64    `json:"fuel_amount" example:"45.67"`
+	DestCityName   string     `json:"dest_city_name,omitempty" example:"東京都"`          // 行先市町村名
+	DestPlaceName  string     `json:"dest_place_name,omitempty" example:"渋谷駅"`         // 行先場所名
+	DepartureTime  *time.Time `json:"departure_time,omitempty" example:"2025-01-13T08:00:00Z"` // 出庫日時
+	ReturnTime     *time.Time `json:"return_time,omitempty" example:"2025-01-13T17:00:00Z"`    // 帰庫日時
+	CreatedAt      *time.Time `json:"created_at,omitempty" example:"2025-01-13T15:04:05Z"`
+	UpdatedAt      *time.Time `json:"updated_at,omitempty" example:"2025-01-13T15:04:05Z"`
 }
 
 // DtakoEvent represents an event record from production
