@@ -49,8 +49,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by 運行NO (links to dtako_rows)",
+                        "description": "運行NO (Required for performance reasons)",
                         "name": "unko_no",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of records to return (default: 100, max: 1000)",
+                        "name": "limit",
                         "in": "query"
                     }
                 ],

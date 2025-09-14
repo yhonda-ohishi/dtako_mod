@@ -255,10 +255,15 @@ paths:
         in: query
         name: type
         type: string
-      - description: Filter by 運行NO (links to dtako_rows)
+      - description: 運行NO (Required for performance reasons)
         in: query
         name: unko_no
+        required: true
         type: string
+      - description: 'Maximum number of records to return (default: 100, max: 1000)'
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
