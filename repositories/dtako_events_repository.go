@@ -54,6 +54,10 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 			CAST(車輌CD AS CHAR) as vehicle_no,
 			CAST(対象乗務員CD AS CHAR) as driver_code,
 			COALESCE(備考, '') as description,
+			COALESCE(開始市町村名, '') as start_city_name,
+			COALESCE(終了市町村名, '') as end_city_name,
+			COALESCE(開始場所名, '') as start_place_name,
+			COALESCE(終了場所名, '') as end_place_name,
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
@@ -108,7 +112,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 		var event models.DtakoEvent
 		var latBigint, lngBigint sql.NullInt64
 
-		// 根本修正: created_at, updated_at を除外
+		// 根本修正: created_at, updated_at を除外し、住所フィールドを追加
 		err := rows.Scan(
 			&event.ID,
 			&event.UnkoNo,
@@ -117,6 +121,10 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 			&event.VehicleNo,
 			&event.DriverCode,
 			&event.Description,
+			&event.StartCityName,
+			&event.EndCityName,
+			&event.StartPlaceName,
+			&event.EndPlaceName,
 			&latBigint,
 			&lngBigint,
 		)
@@ -174,6 +182,10 @@ func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, even
 			CAST(車輌CD AS CHAR) as vehicle_no,
 			CAST(対象乗務員CD AS CHAR) as driver_code,
 			COALESCE(備考, '') as description,
+			COALESCE(開始市町村名, '') as start_city_name,
+			COALESCE(終了市町村名, '') as end_city_name,
+			COALESCE(開始場所名, '') as start_place_name,
+			COALESCE(終了場所名, '') as end_place_name,
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
@@ -230,7 +242,7 @@ func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, even
 		var event models.DtakoEvent
 		var latBigint, lngBigint sql.NullInt64
 
-		// 根本修正: created_at, updated_at を除外
+		// 根本修正: created_at, updated_at を除外し、住所フィールドを追加
 		err := rows.Scan(
 			&event.ID,
 			&event.UnkoNo,
@@ -239,6 +251,10 @@ func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, even
 			&event.VehicleNo,
 			&event.DriverCode,
 			&event.Description,
+			&event.StartCityName,
+			&event.EndCityName,
+			&event.StartPlaceName,
+			&event.EndPlaceName,
 			&latBigint,
 			&lngBigint,
 		)
@@ -282,7 +298,7 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 		return nil, fmt.Errorf("production database not available")
 	}
 
-	// 根本修正: created_at, updated_at を除外したクエリ
+	// 根本修正: created_at, updated_at を除外し、住所フィールドを追加
 	query := `
 		SELECT
 			id,
@@ -292,6 +308,10 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 			CAST(車輌CD AS CHAR) as vehicle_no,
 			CAST(対象乗務員CD AS CHAR) as driver_code,
 			COALESCE(備考, '') as description,
+			COALESCE(開始市町村名, '') as start_city_name,
+			COALESCE(終了市町村名, '') as end_city_name,
+			COALESCE(開始場所名, '') as start_place_name,
+			COALESCE(終了場所名, '') as end_place_name,
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
@@ -310,6 +330,10 @@ func (r *DtakoEventsRepository) GetByID(id string) (*models.DtakoEvent, error) {
 		&event.VehicleNo,
 		&event.DriverCode,
 		&event.Description,
+		&event.StartCityName,
+		&event.EndCityName,
+		&event.StartPlaceName,
+		&event.EndPlaceName,
 		&latBigint,
 		&lngBigint,
 	)
@@ -357,6 +381,10 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 			CAST(車輌CD AS CHAR) as vehicle_no,
 			CAST(対象乗務員CD AS CHAR) as driver_code,
 			COALESCE(備考, '') as description,
+			COALESCE(開始市町村名, '') as start_city_name,
+			COALESCE(終了市町村名, '') as end_city_name,
+			COALESCE(開始場所名, '') as start_place_name,
+			COALESCE(終了場所名, '') as end_place_name,
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
@@ -400,6 +428,10 @@ func (r *DtakoEventsRepository) FetchFromProduction(from, to time.Time, eventTyp
 			&event.VehicleNo,
 			&event.DriverCode,
 			&event.Description,
+			&event.StartCityName,
+			&event.EndCityName,
+			&event.StartPlaceName,
+			&event.EndPlaceName,
 			&latBigint,
 			&lngBigint,
 		)
@@ -460,10 +492,10 @@ func (r *DtakoEventsRepository) Insert(event *models.DtakoEvent) error {
 	endDistance := 0.0
 	sectionTime := 0
 	sectionDistance := 0.0
-	startCity := ""
-	endCity := ""
-	startPlace := ""
-	endPlace := ""
+	startCity := event.StartCityName
+	endCity := event.EndCityName
+	startPlace := event.StartPlaceName
+	endPlace := event.EndPlaceName
 
 	if event.VehicleNo != "" {
 		vehicleCD = 1
