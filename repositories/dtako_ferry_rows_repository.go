@@ -30,9 +30,13 @@ func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompa
 	// JSTタイムゾーンを取得
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 
-	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
-	year, month, day := to.Date()
-	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, jst)
+	// fromもJSTの00:00:00に設定
+	yearFrom, monthFrom, dayFrom := from.Date()
+	fromStart := time.Date(yearFrom, monthFrom, dayFrom, 0, 0, 0, 0, jst)
+
+	// toはJSTの23:59:59に設定
+	yearTo, monthTo, dayTo := to.Date()
+	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
 
 	query := `
 		SELECT id, 運行NO, 運行日, 読取日, 事業所CD, 事業所名,
@@ -45,7 +49,7 @@ func (r *DtakoFerryRowsRepository) GetByDateRange(from, to time.Time, ferryCompa
 		FROM dtako_ferry_rows
 		WHERE 運行日 BETWEEN ? AND ?
 	`
-	args := []interface{}{from, toEndOfDay}
+	args := []interface{}{fromStart, toEndOfDay}
 
 	if ferryCompany != "" {
 		query += " AND フェリー会社名 = ?"
@@ -136,9 +140,13 @@ func (r *DtakoFerryRowsRepository) FetchFromProduction(from, to time.Time, ferry
 	// JSTタイムゾーンを取得
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 
-	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
-	year, month, day := to.Date()
-	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, jst)
+	// fromもJSTの00:00:00に設定
+	yearFrom, monthFrom, dayFrom := from.Date()
+	fromStart := time.Date(yearFrom, monthFrom, dayFrom, 0, 0, 0, 0, jst)
+
+	// toはJSTの23:59:59に設定
+	yearTo, monthTo, dayTo := to.Date()
+	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
 
 	query := `
 		SELECT id, 運行NO, 運行日, 読取日, 事業所CD, 事業所名,
@@ -151,7 +159,7 @@ func (r *DtakoFerryRowsRepository) FetchFromProduction(from, to time.Time, ferry
 		FROM dtako_ferry_rows
 		WHERE 運行日 BETWEEN ? AND ?
 	`
-	args := []interface{}{from, toEndOfDay}
+	args := []interface{}{fromStart, toEndOfDay}
 
 	if ferryCompany != "" {
 		query += " AND フェリー会社名 = ?"

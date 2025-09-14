@@ -38,10 +38,13 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	// JSTタイムゾーンを取得
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 
-	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
-	// 正しく日付の終わりにセット (Add ではなく、その日の23:59:59にする)
-	year, month, day := to.Date()
-	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, jst)
+	// fromもJSTの00:00:00に設定
+	yearFrom, monthFrom, dayFrom := from.Date()
+	fromStart := time.Date(yearFrom, monthFrom, dayFrom, 0, 0, 0, 0, jst)
+
+	// toはJSTの23:59:59に設定
+	yearTo, monthTo, dayTo := to.Date()
+	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
 
 	query := `
 		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
@@ -52,7 +55,7 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 		LIMIT 100
 	`
 
-	rows, err := db.Query(query, from, toEndOfDay)
+	rows, err := db.Query(query, fromStart, toEndOfDay)
 	if err != nil {
 		return []models.DtakoRow{}, err
 	}
@@ -113,9 +116,13 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 	// JSTタイムゾーンを取得
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 
-	// 日付範囲の調整: その日の終わり（23:59:59）まで含める
-	year, month, day := to.Date()
-	toEndOfDay := time.Date(year, month, day, 23, 59, 59, 999999999, jst)
+	// fromもJSTの00:00:00に設定
+	yearFrom, monthFrom, dayFrom := from.Date()
+	fromStart := time.Date(yearFrom, monthFrom, dayFrom, 0, 0, 0, 0, jst)
+
+	// toはJSTの23:59:59に設定
+	yearTo, monthTo, dayTo := to.Date()
+	toEndOfDay := time.Date(yearTo, monthTo, dayTo, 23, 59, 59, 999999999, jst)
 
 	// テスト環境のdtako_test_prodは英語カラム名を使用
 	// 本番環境は日本語カラム名を使用
@@ -141,7 +148,7 @@ func (r *DtakoRowsRepository) FetchFromProduction(from, to time.Time) ([]models.
 		`
 	}
 
-	rows, err := r.prodDB.Query(query, from, toEndOfDay)
+	rows, err := r.prodDB.Query(query, fromStart, toEndOfDay)
 	if err != nil {
 		return []models.DtakoRow{}, err
 	}
