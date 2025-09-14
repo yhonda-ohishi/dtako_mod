@@ -44,9 +44,7 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 	log.Printf("🔍 DEBUG: Checking table access")
 
 	// 根本問題修正: 実際のテーブル構造に合わせたクエリ
-	// - created_at, updated_at カラムを除外
-	// - DATE()関数を使わず直接日時比較
-	// - 実際のカラム型に合わせたスキャン
+	// unko_noを最初の条件にして、インデックスを効かせる
 	query := `
 		SELECT
 			id,
@@ -59,20 +57,25 @@ func (r *DtakoEventsRepository) GetByDateRange(from, to time.Time, eventType, un
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
-		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
+		WHERE 1=1
 	`
 
-	// パラメータで指定された日付範囲を使用
-	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
+	// パラメータで指定された条件を追加
+	args := []interface{}{}
+
+	// unko_noを最初の条件にする（インデックス最適化）
+	if unkoNo != "" {
+		query += " AND 運行NO = ?"
+		args = append(args, unkoNo)
+	}
+
+	// 日付範囲条件
+	query += " AND 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)"
+	args = append(args, from.Format("2006-01-02"), to.Format("2006-01-02"))
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
 		args = append(args, eventType)
-	}
-
-	if unkoNo != "" {
-		query += " AND 運行NO = ?"
-		args = append(args, unkoNo)
 	}
 
 	query += " ORDER BY 開始日時 DESC LIMIT 100"
@@ -161,6 +164,7 @@ func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, even
 	log.Printf("🔍 DEBUG: Checking table access")
 
 	// 根本問題修正: 実際のテーブル構造に合わせたクエリ
+	// unko_noを最初の条件にして、インデックスを効かせる
 	query := `
 		SELECT
 			id,
@@ -173,20 +177,25 @@ func (r *DtakoEventsRepository) GetByDateRangeWithLimit(from, to time.Time, even
 			開始GPS緯度,
 			開始GPS経度
 		FROM dtako_events
-		WHERE 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)
+		WHERE 1=1
 	`
 
-	// パラメータで指定された日付範囲を使用
-	args := []interface{}{from.Format("2006-01-02"), to.Format("2006-01-02")}
+	// パラメータで指定された条件を追加
+	args := []interface{}{}
+
+	// unko_noを最初の条件にする（インデックス最適化）
+	if unkoNo != "" {
+		query += " AND 運行NO = ?"
+		args = append(args, unkoNo)
+	}
+
+	// 日付範囲条件
+	query += " AND 開始日時 >= ? AND 開始日時 < DATE_ADD(?, INTERVAL 1 DAY)"
+	args = append(args, from.Format("2006-01-02"), to.Format("2006-01-02"))
 
 	if eventType != "" {
 		query += " AND イベント名 = ?"
 		args = append(args, eventType)
-	}
-
-	if unkoNo != "" {
-		query += " AND 運行NO = ?"
-		args = append(args, unkoNo)
 	}
 
 	// 動的LIMIT設定

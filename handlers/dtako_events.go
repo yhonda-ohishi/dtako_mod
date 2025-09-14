@@ -32,7 +32,7 @@ func NewDtakoEventsHandler() *DtakoEventsHandler {
 // @Param        from     query     string  false  "Start date (YYYY-MM-DD)"
 // @Param        to       query     string  false  "End date (YYYY-MM-DD)"
 // @Param        type     query     string  false  "Event type filter"
-// @Param        unko_no  query     string  false  "Filter by 運行NO (links to dtako_rows)"
+// @Param        unko_no  query     string  true   "運行NO (Required for performance reasons)"
 // @Param        limit    query     int     false  "Maximum number of records to return (default: 100, max: 1000)"
 // @Success      200      {array}   models.DtakoEvent  "List of dtako events"
 // @Failure      400      {object}  models.ErrorResponse  "Invalid request parameters"
@@ -44,6 +44,18 @@ func (h *DtakoEventsHandler) List(w http.ResponseWriter, r *http.Request) {
 	to := r.URL.Query().Get("to")
 	eventType := r.URL.Query().Get("type")
 	unkoNo := r.URL.Query().Get("unko_no")
+
+	// ⭐ 重要: unko_no を必須パラメータにする
+	if unkoNo == "" {
+		errorResp := models.ErrorResponse{
+			Code:    400,
+			Message: "The 'unko_no' parameter is required for performance reasons. Date range queries without unko_no are not supported.",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
 
 	// Get limit parameter with default value
 	limitStr := r.URL.Query().Get("limit")
