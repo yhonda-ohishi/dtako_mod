@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"time"
 
@@ -25,18 +26,25 @@ func NewDtakoRowsRepository() *DtakoRowsRepository {
 	}
 }
 
-// GetByDateRange retrieves rows within a date range from local database
+// GetByDateRange retrieves rows within a date range from production database
 func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.DtakoRow, error) {
-	// ローカルDBは日本語カラム名
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return []models.DtakoRow{}, fmt.Errorf("production database not available")
+	}
+
+	// 本番DBは日本語カラム名
 	query := `
 		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
 		FROM dtako_rows
 		WHERE 運行日 BETWEEN ? AND ?
 		ORDER BY 運行日 DESC
+		LIMIT 100
 	`
 
-	rows, err := r.localDB.Query(query, from, to)
+	rows, err := db.Query(query, from, to)
 	if err != nil {
 		return []models.DtakoRow{}, err
 	}
@@ -59,8 +67,14 @@ func (r *DtakoRowsRepository) GetByDateRange(from, to time.Time) ([]models.Dtako
 	return results, nil
 }
 
-// GetByID retrieves a specific row by ID from local database
+// GetByID retrieves a specific row by ID from production database
 func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
+	// 本番DBのみ使用（ローカルは無視）
+	var db *sql.DB = r.prodDB
+	if db == nil {
+		return nil, fmt.Errorf("production database not available")
+	}
+
 	query := `
 		SELECT id, 運行NO, 運行日, 車輌CD, 対象乗務員CD, 行先市町村名,
 		       総走行距離, 自社主燃料, NULL as created_at, NULL as updated_at
@@ -69,7 +83,7 @@ func (r *DtakoRowsRepository) GetByID(id string) (*models.DtakoRow, error) {
 	`
 
 	var row models.DtakoRow
-	err := r.localDB.QueryRow(query, id).Scan(
+	err := db.QueryRow(query, id).Scan(
 		&row.ID, &row.UnkoNo, &row.Date, &row.VehicleNo, &row.DriverCode,
 		&row.RouteCode, &row.Distance, &row.FuelAmount,
 		&row.CreatedAt, &row.UpdatedAt,
@@ -171,7 +185,7 @@ func (r *DtakoRowsRepository) Insert(row *models.DtakoRow) error {
 	vehicleCC := "001100" // 車輌CC（実際のデータ形式）
 
 	// 読取日は運行日と同じ値を使用
-	_, err := r.localDB.Exec(query,
+	_, err := r.prodDB.Exec(query,
 		row.ID, row.UnkoNo, row.Date, row.Date, vehicleCD, vehicleCC, driverCode,
 		row.RouteCode, row.Distance, row.FuelAmount,
 	)
