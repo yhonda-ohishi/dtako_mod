@@ -27,22 +27,25 @@ func (s *DtakoEventsService) GetEvents(from, to, eventType, unkoNo string) ([]mo
 	var fromDate, toDate time.Time
 	var err error
 
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
 	if from != "" {
-		fromDate, err = time.Parse("2006-01-02", from)
+		fromDate, err = time.ParseInLocation("2006-01-02", from, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid from date: %v", err)
 		}
 	} else {
-		fromDate = time.Now().AddDate(0, -1, 0)
+		fromDate = time.Now().In(jst).AddDate(0, -1, 0)
 	}
 
 	if to != "" {
-		toDate, err = time.Parse("2006-01-02", to)
+		toDate, err = time.ParseInLocation("2006-01-02", to, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid to date: %v", err)
 		}
 	} else {
-		toDate = time.Now()
+		toDate = time.Now().In(jst)
 	}
 
 	return s.repo.GetByDateRange(fromDate, toDate, eventType, unkoNo)
@@ -62,13 +65,16 @@ func (s *DtakoEventsService) GetEventByID(id string) (*models.DtakoEvent, error)
 
 // ImportFromProduction imports event data from production database
 func (s *DtakoEventsService) ImportFromProduction(fromDate, toDate, eventType string) (*models.ImportResult, error) {
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
 	// Parse dates
-	from, err := time.Parse("2006-01-02", fromDate)
+	from, err := time.ParseInLocation("2006-01-02", fromDate, jst)
 	if err != nil {
 		return nil, fmt.Errorf("invalid from date: %v", err)
 	}
 
-	to, err := time.Parse("2006-01-02", toDate)
+	to, err := time.ParseInLocation("2006-01-02", toDate, jst)
 	if err != nil {
 		return nil, fmt.Errorf("invalid to date: %v", err)
 	}
@@ -131,22 +137,25 @@ func (s *DtakoEventsService) GetEventsWithLimit(from, to, eventType, unkoNo stri
 	var fromDate, toDate time.Time
 	var err error
 
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
 	if from != "" {
-		fromDate, err = time.Parse("2006-01-02", from)
+		fromDate, err = time.ParseInLocation("2006-01-02", from, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid from date: %v", err)
 		}
 	} else {
-		fromDate = time.Now().AddDate(0, -1, 0)
+		fromDate = time.Now().In(jst).AddDate(0, -1, 0)
 	}
 
 	if to != "" {
-		toDate, err = time.Parse("2006-01-02", to)
+		toDate, err = time.ParseInLocation("2006-01-02", to, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid to date: %v", err)
 		}
 	} else {
-		toDate = time.Now()
+		toDate = time.Now().In(jst)
 	}
 
 	return s.repo.GetByDateRangeWithLimit(fromDate, toDate, eventType, unkoNo, limit)

@@ -27,22 +27,27 @@ func (s *DtakoRowsService) GetRows(from, to string) ([]models.DtakoRow, error) {
 	var fromDate, toDate time.Time
 	var err error
 
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
 	if from != "" {
-		fromDate, err = time.Parse("2006-01-02", from)
+		// JSTで日付をパース
+		fromDate, err = time.ParseInLocation("2006-01-02", from, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid from date: %v", err)
 		}
 	} else {
-		fromDate = time.Now().AddDate(0, -1, 0)
+		fromDate = time.Now().In(jst).AddDate(0, -1, 0)
 	}
 
 	if to != "" {
-		toDate, err = time.Parse("2006-01-02", to)
+		// JSTで日付をパース
+		toDate, err = time.ParseInLocation("2006-01-02", to, jst)
 		if err != nil {
 			return nil, fmt.Errorf("invalid to date: %v", err)
 		}
 	} else {
-		toDate = time.Now()
+		toDate = time.Now().In(jst)
 	}
 
 	return s.repo.GetByDateRange(fromDate, toDate)
@@ -62,13 +67,16 @@ func (s *DtakoRowsService) GetRowByID(id string) (*models.DtakoRow, error) {
 
 // ImportFromProduction imports data from production database
 func (s *DtakoRowsService) ImportFromProduction(fromDate, toDate string) (*models.ImportResult, error) {
-	// Parse dates
-	from, err := time.Parse("2006-01-02", fromDate)
+	// JSTタイムゾーンを取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+
+	// Parse dates in JST
+	from, err := time.ParseInLocation("2006-01-02", fromDate, jst)
 	if err != nil {
 		return nil, fmt.Errorf("invalid from date: %v", err)
 	}
 
-	to, err := time.Parse("2006-01-02", toDate)
+	to, err := time.ParseInLocation("2006-01-02", toDate, jst)
 	if err != nil {
 		return nil, fmt.Errorf("invalid to date: %v", err)
 	}
